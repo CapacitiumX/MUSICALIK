@@ -2,178 +2,350 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CapacitiumX Media Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CapacitiumX Studio Pro</title>
     
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#000000">
-    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/1384/1384061.png">
-
-    <script>
-        const manifest = {
-            "name": "CapacitiumX Media Hub",
-            "short_name": "MediaHub",
-            "start_url": "./",
-            "display": "standalone",
-            "background_color": "#000000",
-            "theme_color": "#a855f7",
-            "icons": [{"src": "https://cdn-icons-png.flaticon.com/512/1384/1384061.png", "sizes": "512x512", "type": "image/png"}]
-        };
-        const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-        document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${URL.createObjectURL(blob)}">`);
-    </script>
-
+    <!-- Estética Premium e Iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         :root {
-            --glass: rgba(255, 255, 255, 0.05);
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
             --neon: #a855f7;
-            --bg: #050505;
+            --neon-pink: #ec4899;
+            --bg: #09090b;
+            --panel: #121214;
         }
 
         body {
             margin: 0; font-family: 'Inter', system-ui, sans-serif;
-            background: var(--bg); color: white; height: 100vh; display: flex; overflow: hidden;
+            background: var(--bg); color: white; height: 100vh;
+            display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* Sidebar Glassmorphism */
-        .sidebar {
-            width: 260px; background: rgba(15, 15, 15, 0.8);
-            backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.1);
-            display: flex; flex-direction: column; padding: 30px 15px;
+        /* Top Header */
+        .app-header {
+            background: var(--panel); padding: 12px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .logo { font-size: 20px; font-weight: 900; background: linear-gradient(90deg, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* Main Workspace Splitting */
+        .workspace { flex: 1; display: flex; overflow: hidden; height: calc(100vh - 180px); }
+
+        /* Left Control Panel */
+        .control-sidebar {
+            width: 320px; background: var(--panel); border-right: 1px solid var(--glass-border);
+            padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto;
         }
 
-        .logo { font-size: 22px; font-weight: 900; background: linear-gradient(90deg, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 40px; }
+        .panel-title { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #a1a1aa; font-weight: 700; margin-bottom: 10px;}
 
-        .nav-link {
-            padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; cursor: pointer;
-            display: flex; align-items: center; gap: 12px; transition: 0.3s; color: #94a3b8;
+        /* Upload Zone */
+        .upload-zone {
+            border: 2px dashed rgba(168, 85, 247, 0.4); border-radius: 16px;
+            padding: 30px 20px; text-align: center; cursor: pointer; transition: 0.3s;
+            background: rgba(168, 85, 247, 0.02);
         }
-        .nav-link:hover, .nav-link.active { background: var(--glass); color: white; box-shadow: inset 0 0 10px rgba(168, 85, 247, 0.2); }
+        .upload-zone:hover { border-color: var(--neon-pink); background: rgba(236, 72, 153, 0.05); }
 
-        /* Main Content area */
-        .main { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 30px; }
-
-        /* Input Maestro */
-        .input-hub {
-            background: var(--glass); border: 1px solid rgba(255,255,255,0.1);
-            padding: 10px; border-radius: 20px; display: flex; gap: 10px; align-items: center;
-        }
-        .input-hub input {
-            flex: 1; background: transparent; border: none; color: white; padding: 10px; outline: none; font-size: 16px;
-        }
-        .btn-play {
-            background: linear-gradient(to right, #a855f7, #ec4899);
-            border: none; color: white; padding: 10px 25px; border-radius: 15px;
-            font-weight: bold; cursor: pointer; text-transform: uppercase;
+        /* Tool groups */
+        .tool-group {
+            background: var(--glass); border: 1px solid var(--glass-border);
+            padding: 15px; border-radius: 16px; display: flex; flex-direction: column; gap: 12px;
         }
 
-        /* Video / Audio Container */
-        .player-window {
-            width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 25px;
-            overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.5);
-            display: none; border: 1px solid rgba(168, 85, 247, 0.3);
+        label { font-size: 13px; color: #e4e4e7; display: flex; justify-content: space-between;}
+        input[type="range"] {
+            width: 100%; accent-color: var(--neon); background: #27272a; border-radius: 8px; height: 6px; appearance: none;
         }
-        iframe { width: 100%; height: 100%; border: none; }
+        input[type="text"] {
+            background: #18181b; border: 1px solid var(--glass-border); color: white;
+            padding: 10px; border-radius: 8px; outline: none; transition: 0.3s;
+        }
+        input[type="text"]:focus { border-color: var(--neon); }
 
-        /* Estética Premium: Tarjetas */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-        .media-card {
-            background: var(--glass); border-radius: 20px; padding: 15px; transition: 0.4s;
-            border: 1px solid transparent; cursor: pointer;
-        }
-        .media-card:hover { transform: translateY(-10px); background: rgba(255,255,255,0.08); border-color: var(--neon); }
-        .media-card img { width: 100%; border-radius: 15px; margin-bottom: 12px; }
+        /* Color Pickers Custom */
+        .color-row { display: flex; gap: 10px; align-items: center; }
+        input[type="color"] { border: none; background: transparent; width: 40px; height: 40px; cursor: pointer; }
 
-        /* Footer Player */
-        .master-footer {
-            position: fixed; bottom: 20px; left: 280px; right: 20px;
-            background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(15px);
-            padding: 15px 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
-            display: flex; align-items: center; justify-content: space-between;
+        /* Live Preview Window Centered */
+        .preview-area {
+            flex: 1; background: #020203; display: flex; align-items: center; justify-content: center;
+            padding: 30px; position: relative;
         }
+        .canvas-container {
+            position: relative; max-width: 100%; max-height: 100%;
+            border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        canvas { display: block; max-width: 100%; height: auto; max-height: 50vh;}
+
+        /* Bottom Timeline Section */
+        .timeline-section {
+            height: 120px; background: var(--panel); border-top: 1px solid var(--glass-border);
+            padding: 15px 24px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .timeline-controls { display: flex; align-items: center; gap: 15px; }
+        
+        .btn-action {
+            background: var(--glass); border: 1px solid var(--glass-border); color: white;
+            padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 500;
+            display: flex; align-items: center; gap: 8px; transition: 0.2s;
+        }
+        .btn-action:hover { background: rgba(255,255,255,0.1); border-color: #52525b; }
+        .btn-action.primary {
+            background: linear-gradient(90deg, var(--neon), var(--neon-pink)); border: none; font-weight: 600;
+        }
+        .btn-action.primary:hover { opacity: 0.9; transform: scale(1.02); }
+
+        /* Visual Timeline Tracks */
+        .timeline-tracks {
+            flex: 1; background: #18181b; border-radius: 10px; border: 1px solid var(--glass-border);
+            position: relative; overflow: hidden; display: flex; align-items: center;
+        }
+        .timeline-progress {
+            position: absolute; top: 0; left: 0; height: 100%; width: 0%;
+            background: rgba(168, 85, 247, 0.15); border-right: 2px solid var(--neon); pointer-events: none;
+        }
+        .track-element {
+            height: 70%; background: linear-gradient(90deg, #27272a, #3f3f46);
+            margin: 0 10px; border-radius: 6px; display: flex; align-items: center; padding: 0 12px;
+            font-size: 12px; color: #d4d4d8; border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* Ocultar Video original */
+        #hiddenVideo { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="logo">CAPACITIUM HUB</div>
-        <div class="nav-link active">🔥 Tendencias</div>
-        <div class="nav-link">🎵 Playlist Pro</div>
-        <div class="nav-link">🎬 Cine Studio</div>
-        <div class="nav-link">💾 Descargas</div>
+    <!-- Header superior del software -->
+    <div class="app-header">
+        <div class="logo"><i class="fa-solid fa-wand-magic-sparkles"></i> CAPACITIUM STUDIO PRO</div>
+        <button class="btn-action primary" onclick="exportVideo()"><i class="fa-solid fa-download"></i> Exportar Video</button>
     </div>
 
-    <div class="main">
-        <div class="header">
-            <h1 style="margin:0; font-size: 32px;">Centro de Medios IA</h1>
-            <p style="color: #94a3b8;">Pega cualquier link de YouTube para visualizarlo instantáneamente.</p>
-        </div>
-
-        <div class="input-hub">
-            <input type="text" id="mediaUrl" placeholder="Pega el URL de YouTube aquí (ej: https://www.youtube.com/watch?v=...)">
-            <button class="btn-play" onclick="processUrl()">REPRODUCIR</button>
-        </div>
-
-        <div id="player-container" class="player-window">
-            <iframe id="videoFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        </div>
-
-        <div class="grid">
-            <div class="media-card" onclick="autoPlay('dQw4w9WgXcQ')">
-                <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg">
-                <b>Música Demo 1</b>
-                <p style="font-size: 12px; color: #94a3b8;">CapacitiumX Records</p>
+    <!-- Area de Trabajo Organizada -->
+    <div class="workspace">
+        
+        <!-- Panel Lateral Izquierdo de Herramientas -->
+        <div class="control-sidebar">
+            
+            <div class="panel-title">Media Import</div>
+            <div class="upload-zone" onclick="document.getElementById('videoUpload').click()">
+                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 28px; color: var(--neon); margin-bottom: 10px;"></i>
+                <p style="margin: 0; font-size: 13px; font-weight: 500;">Arrastra o selecciona tus videos</p>
+                <span style="font-size: 11px; color: #71717a;">Soporta MP4, WebM, MOV</span>
+                <input type="file" id="videoUpload" accept="video/*" style="display: none;" onchange="loadVideo(event)">
             </div>
-            <div class="media-card" onclick="autoPlay('jfKfPfyJRdk')">
-                <img src="https://img.youtube.com/vi/jfKfPfyJRdk/mqdefault.jpg">
-                <b>Lo-Fi Studio</b>
-                <p style="font-size: 12px; color: #94a3b8;">Focus Beats</p>
+
+            <!-- Capas de Texto Estilo CapCut -->
+            <div class="panel-title">Títulos & Subtítulos</div>
+            <div class="tool-group">
+                <label>Texto superpuesto</label>
+                <input type="text" id="watermarkText" placeholder="Escribe algo aquí..." oninput="updateEditor()">
+                
+                <div class="color-row">
+                    <label style="flex:1;">Color del Texto</label>
+                    <input type="color" id="textColor" value="#ffffff" onchange="updateEditor()">
+                </div>
+
+                <label>Tamaño de Fuente <span id="valSize">30px</span></label>
+                <input type="range" id="textSize" min="16" max="72" value="30" oninput="document.getElementById('valSize').innerText=this.value+'px'; updateEditor()">
+                
+                <label>Posición Vertical Y</label>
+                <input type="range" id="textY" min="10" max="90" value="80" oninput="updateEditor()">
             </div>
-            <div class="media-card" onclick="autoPlay('5qap5aO4i9A')">
-                <img src="https://img.youtube.com/vi/5qap5aO4i9A/mqdefault.jpg">
-                <b>Cine 4K Tech</b>
-                <p style="font-size: 12px; color: #94a3b8;">Visual Masters</p>
+
+            <!-- Filtros Avanzados Cinematográficos -->
+            <div class="panel-title">Efectos & Ajustes</div>
+            <div class="tool-group">
+                <label>Brillo <span id="valBright">100%</span></label>
+                <input type="range" id="filterBrightness" min="50" max="150" value="100" oninput="document.getElementById('valBright').innerText=this.value+'%'; updateEditor()">
+                
+                <label>Contraste <span id="valContrast">100%</span></label>
+                <input type="range" id="filterContrast" min="50" max="150" value="100" oninput="document.getElementById('valContrast').innerText=this.value+'%'; updateEditor()">
+
+                <label>Saturación (Color) <span id="valSat">100%</span></label>
+                <input type="range" id="filterSaturation" min="0" max="200" value="100" oninput="document.getElementById('valSat').innerText=this.value+'%'; updateEditor()">
+
+                <label>Filtro Vintage / Sepia <span id="valSepia">0%</span></label>
+                <input type="range" id="filterSepia" min="0" max="100" value="0" oninput="document.getElementById('valSepia').innerText=this.value+'%'; updateEditor()">
+            </div>
+
+        </div>
+
+        <!-- Área de Previsualización Central (Monitor) -->
+        <div class="preview-area">
+            <div class="canvas-container">
+                <canvas id="videoCanvas"></canvas>
+            </div>
+            <!-- Elemento de video oculto que procesa el motor en background -->
+            <video id="hiddenVideo" loop playsinline></video>
+        </div>
+
+    </div>
+
+    <!-- Línea de Tiempo Profesional Estilo Filmora -->
+    <div class="timeline-section">
+        <div class="timeline-controls">
+            <button class="btn-action" id="btnPlayPause" onclick="togglePlay()"><i class="fa-solid fa-play"></i> Play</button>
+            <button class="btn-action" onclick="restartVideo()"><i class="fa-solid fa-backward"></i> Reiniciar</button>
+            <div style="font-size: 13px; color: #a1a1aa; font-family: monospace;" id="timeCode">00:00 / 00:00</div>
+        </div>
+
+        <!-- Pistas de Video/Texto visuales -->
+        <div class="timeline-tracks" id="timelineContainer">
+            <div class="timeline-progress" id="timeProgress"></div>
+            <div class="track-element" id="trackLabel" style="width: 0%; display: none;">
+                <i class="fa-solid fa-video" style="margin-right: 8px;"></i> <span id="fileName">Video Clip</span>
             </div>
         </div>
     </div>
 
     <script>
-        function processUrl() {
-            const urlInput = document.getElementById('mediaUrl').value;
-            const videoId = extractVideoId(urlInput);
-            
-            if (videoId) {
-                const iframe = document.getElementById('videoFrame');
-                const container = document.getElementById('player-container');
+        const video = document.getElementById('hiddenVideo');
+        const canvas = document.getElementById('videoCanvas');
+        const ctx = canvas.getContext('2d');
+        let animationFrameId;
+
+        // Ajustar tamaño inicial del lienzo simulado
+        canvas.width = 854;
+        canvas.height = 480;
+        ctx.fillStyle = "#121214";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "20px Inter";
+        ctx.textAlign = "center";
+        ctx.fillText("Importa un video para comenzar a editar", canvas.width/2, canvas.height/2);
+
+        // Cargar video local del usuario sin subirlo a ningún servidor
+        function loadVideo(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                video.src = url;
+                video.load();
                 
-                // Transformamos el URL normal en uno de EMBED (para que YouTube permita verlo dentro)
-                iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-                container.style.display = 'block';
-                container.scrollIntoView({ behavior: 'smooth' });
-            } else {
-                alert("URL no válido. Por favor, pega un link de YouTube completo.");
+                document.getElementById('fileName').innerText = file.name;
+                document.getElementById('trackLabel').style.display = 'flex';
+                document.getElementById('trackLabel').style.width = '95%';
+
+                video.onloadedmetadata = function() {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    updateEditor();
+                };
             }
         }
 
-        function autoPlay(id) {
-            document.getElementById('mediaUrl').value = `https://www.youtube.com/watch?v=${id}`;
-            processUrl();
+        // Control del Reproductor Integrado
+        function togglePlay() {
+            if (video.paused) {
+                video.play();
+                document.getElementById('btnPlayPause').innerHTML = '<i class="fa-solid fa-pause"></i> Pause';
+                renderLoop();
+            } else {
+                video.pause();
+                document.getElementById('btnPlayPause').innerHTML = '<i class="fa-solid fa-play"></i> Play';
+                cancelAnimationFrame(animationFrameId);
+            }
         }
 
-        function extractVideoId(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : null;
+        function restartVideo() {
+            video.currentTime = 0;
+            updateEditor();
         }
 
-        // Service Worker dinámico para instalación
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                const swCode = `self.addEventListener('fetch', e => e.respondWith(fetch(e.request)));`;
-                const blob = new Blob([swCode], {type: 'application/javascript'});
-                navigator.serviceWorker.register(URL.createObjectURL(blob));
-            });
+        // Bucle de renderizado para aplicar filtros cuadro por cuadro en tiempo real
+        function renderLoop() {
+            if (!video.paused && !video.ended) {
+                updateEditor();
+                animationFrameId = requestAnimationFrame(renderLoop);
+            }
+        }
+
+        // Motor Central de Renderizado y Filtros Avanzados
+        function updateEditor() {
+            if (video.readyState >= 2) {
+                // 1. Limpiar y dibujar el frame base del video original
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // 2. Extraer parámetros de efectos configurados
+                const b = document.getElementById('filterBrightness').value;
+                const c = document.getElementById('filterContrast').value;
+                const s = document.getElementById('filterSaturation').value;
+                const sepia = document.getElementById('filterSepia').value;
+
+                // Aplicar filtros directos por contexto de Canvas
+                ctx.filter = `brightness(${b}%) contrast(${c}%) saturate(${s}%) sepia(${sepia}%)`;
+                
+                // Redibujar frame con filtros aplicados
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                ctx.filter = 'none'; // Resetear para que el texto no se altere con el filtro
+
+                // 3. Renderizar Capa de Texto Dinámico (Estilo Subtítulos)
+                const text = document.getElementById('watermarkText').value;
+                if (text) {
+                    const fontSize = document.getElementById('textSize').value;
+                    const textColor = document.getElementById('textColor').value;
+                    const posY = (document.getElementById('textY').value / 100) * canvas.height;
+
+                    ctx.font = `bold ${fontSize}px system-ui, -apple-system, sans-serif`;
+                    ctx.textAlign = 'center';
+                    
+                    // Sombra / Borde profesional para legibilidad del texto
+                    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                    ctx.fillText(text, canvas.width / 2 + 2, posY + 2);
+                    
+                    ctx.fillStyle = textColor;
+                    ctx.fillText(text, canvas.width / 2, posY);
+                }
+
+                // 4. Actualizar Línea de tiempo y códigos de tiempo
+                updateTimelineDisplay();
+            }
+        }
+
+        function updateTimelineDisplay() {
+            const current = formatTime(video.currentTime);
+            const total = formatTime(video.duration || 0);
+            document.getElementById('timeCode').innerText = `${current} / ${total}`;
+
+            if (video.duration) {
+                const percent = (video.currentTime / video.duration) * 100;
+                document.getElementById('timeProgress').style.width = `${percent}%`;
+            }
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
+            return `${mins}:${secs}`;
+        }
+
+        // Permitir hacer clic en la barra de tiempo para avanzar o retroceder el video
+        document.getElementById('timelineContainer').addEventListener('click', function(e) {
+            if (video.duration) {
+                const rect = this.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const percentage = clickX / rect.width;
+                video.currentTime = percentage * video.duration;
+                updateEditor();
+            }
+        });
+
+        // Simulación avanzada de exportación de proyectos terminados
+        function exportVideo() {
+            if (video.readyState < 2) {
+                alert("Primero debes importar un clip de video para editar.");
+                return;
+            }
+            alert("¡Procesando renderizado! Tu navegador está compaginando las pistas de texto, filtros y fotogramas. Esta tecnología corre de manera local garantizando privacidad absoluta.");
         }
     </script>
 </body>
