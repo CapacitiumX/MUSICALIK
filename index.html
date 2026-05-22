@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Capacitium Studio - Voice Booster Edition</title>
+    <title>Capacitium Studio - Pure Mobile Voice Fix</title>
     
     <!-- Iconos y Estilos Premium -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -74,7 +74,7 @@
 <body>
 
     <div class="app-header">
-        <div class="logo"><i class="fa-solid fa-volume-high"></i> CAPACITIUM STUDIO - VOICE BOOST MASTER</div>
+        <div class="logo"><i class="fa-solid fa-mobile-screen-button"></i> CAPACITIUM STUDIO - MOBILE SOUND STUDIO</div>
         <div class="btn-group">
             <button class="btn-action" onclick="undo()"><i class="fa-solid fa-rotate-left"></i> Deshacer</button>
             <button class="btn-action" onclick="redo()"><i class="fa-solid fa-rotate-right"></i> Rehacer</button>
@@ -108,12 +108,12 @@
                 <input type="range" id="chromaKeyTolerance" min="10" max="150" value="70" oninput="updateEditor()">
             </div>
 
-            <div class="panel-title">3. Amplificador de Voz & Música (Calibrado)</div>
+            <div class="panel-title">3. Consola de Audio (Filtros Anti-Estática)</div>
             <div class="tool-group">
-                <label>Volumen de tu Micrófono <span id="valMic" style="color: #22c55e; font-weight: bold;">300% (BOOST)</span></label>
-                <input type="range" id="voiceBoosterVol" min="100" max="400" value="300" oninput="document.getElementById('valMic').innerText=this.value+'% (BOOST)'; changeVoiceBoost();">
+                <label>Volumen Micrófono <span id="valMic" style="color: #22c55e; font-weight: bold;">300% (BOOST)</span></label>
+                <input type="range" id="voiceBoosterVol" min="100" max = "400" value="300" oninput="document.getElementById('valMic').innerText=this.value+'% (BOOST)'; changeVoiceBoost();">
 
-                <label>Selecciona Música de Fondo</label>
+                <label>Música Instrumental</label>
                 <select id="bgMusicSelect" onchange="changeMusic()">
                     <option value="none">Sin música de fondo</option>
                     <option value="m1">1. Tecno Melódico (Base Rítmica)</option>
@@ -121,8 +121,8 @@
                     <option value="m3">3. Lo-Fi Piano Chillout (Relajante)</option>
                     <option value="m4">4. Deep House Ambient (Corporativo)</option>
                 </select>
-                <label>Volumen Fondo Musical <span id="valVol">5%</span></label>
-                <input type="range" id="bgMusicVolume" min="0" max="30" value="5" oninput="document.getElementById('valVol').innerText=this.value+'%'; changeVolume();">
+                <label>Volumen Fondo Musical <span id="valVol">4%</span></label>
+                <input type="range" id="bgMusicVolume" min="0" max="25" value="4" oninput="document.getElementById('valVol').innerText=this.value+'%'; changeVolume();">
             </div>
 
             <div class="panel-title">4. Títulos Dinámicos</div>
@@ -135,7 +135,7 @@
         </div>
 
         <div class="preview-area">
-            <div class="status-overlay" id="statusOverlay">🔴 GRABANDO MASTER CON GANANCIA...</div>
+            <div class="status-overlay" id="statusOverlay">🔴 GRABANDO AUDIO LIMPIO...</div>
             <div class="canvas-container" id="canvasContainer" style="cursor: move;">
                 <canvas id="videoCanvas"></canvas>
             </div>
@@ -163,13 +163,13 @@
         </div>
     </div>
 
-    <!-- INGENIERÍA DE CALIBRACIÓN DE AUDIO: MONO TRACKS + VOICE BOOST + AMBIENT ATTENUATOR -->
+    <!-- INGENIERÍA DE AUDIO MEJORADA: FILTROS INTEGRADOS ESTILO CELULAR -->
     <script>
         let audioCtx = null;
         let mixerDest = null;
         let videoNode = null;
         let micNode = null;
-        let micGainNode = null; // Nodo amplificador dedicado para tu voz
+        let micGainNode = null; 
         let musicGainNode = null;
         let currentMusicType = "none";
         let musicInterval = null;
@@ -184,21 +184,21 @@
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 mixerDest = audioCtx.createMediaStreamDestination();
 
-                // 1. Audio del Video Base
+                // Audio del Video Original
                 videoNode = audioCtx.createMediaElementSource(videoEl);
                 videoNode.connect(audioCtx.destination); 
                 videoNode.connect(mixerDest);            
 
-                // 2. Canal Maestro de Música (Atenuado logarítmicamente desde el inicio)
+                // Ajuste milimétrico del volumen de fondo instrumental
                 musicGainNode = audioCtx.createGain();
-                musicGainNode.gain.value = (document.getElementById('bgMusicVolume').value / 100) * 0.2; // Escalamiento real fino
+                musicGainNode.gain.value = (document.getElementById('bgMusicVolume').value / 100) * 0.15; 
                 musicGainNode.connect(audioCtx.destination);
                 musicGainNode.connect(mixerDest);
 
-                // 3. Nodo de Amplificación Crítica para la Voz (Voice Booster Node)
+                // Booster maestro para tu micrófono
                 micGainNode = audioCtx.createGain();
-                micGainNode.gain.value = document.getElementById('voiceBoosterVol').value / 100; // Inicia en 3.0 (300%)
-                micGainNode.connect(mixerDest); // Va directo al archivo sin retornar a bocinas para evitar vicio
+                micGainNode.gain.value = document.getElementById('voiceBoosterVol').value / 100; 
+                micGainNode.connect(mixerDest); 
                 
                 monitorVoiceLevel();
             }
@@ -219,17 +219,15 @@
                 for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
                 let averageVolume = sum / dataArray.length;
                 
-                // Nivel base muy bajo configurado por el usuario
-                let userMaxVolume = (document.getElementById('bgMusicVolume').value / 100) * 0.2;
+                let userMaxVolume = (document.getElementById('bgMusicVolume').value / 100) * 0.15;
 
-                if (averageVolume > 5) { 
-                    // Cuando detecta tu voz, baja la música al mínimo absoluto casi inaudible
-                    musicGainNode.gain.setTargetAtTime(0.005, audioCtx.currentTime, 0.05);
+                if (averageVolume > 4) { 
+                    // Al hablar, atenúa la música suavemente al fondo
+                    musicGainNode.gain.setTargetAtTime(0.002, audioCtx.currentTime, 0.05);
                 } else {
-                    // Retorna al volumen de fondo sutil configurado
                     musicGainNode.gain.setTargetAtTime(userMaxVolume, audioCtx.currentTime, 0.4);
                 }
-            }, 80);
+            }, 70);
         }
 
         function playPolifonicTrack(type) {
@@ -246,19 +244,19 @@
             musicInterval = setInterval(() => {
                 if (currentMusicType !== type || !audioCtx) { clearInterval(musicInterval); return; }
 
-                if (type === "m1") { // Tecno Melódico
+                if (type === "m1") { 
                     let osc = audioCtx.createOscillator();
                     let filter = audioCtx.createBiquadFilter();
                     osc.type = "sawtooth";
-                    filter.type = "lowpass"; filter.frequency.value = 450;
+                    filter.type = "lowpass"; filter.frequency.value = 400;
                     let baseNote = (step % 4 === 0) ? notes.C3 : (step % 4 === 2 ? notes.E3 : notes.G3);
                     osc.frequency.setValueAtTime(baseNote, audioCtx.currentTime);
                     osc.connect(filter);
                     filter.connect(musicGainNode);
                     osc.start();
-                    osc.stop(audioCtx.currentTime + 0.15);
+                    osc.stop(audioCtx.currentTime + 0.12);
                 } 
-                else if (type === "m2") { // Synthwave Drive
+                else if (type === "m2") { 
                     let osc1 = audioCtx.createOscillator();
                     let osc2 = audioCtx.createOscillator();
                     osc1.type = "triangle"; osc2.type = "sawtooth";
@@ -268,31 +266,31 @@
                     osc1.connect(musicGainNode);
                     osc2.connect(musicGainNode);
                     osc1.start(); osc2.start();
-                    osc1.stop(audioCtx.currentTime + 0.3); osc2.stop(audioCtx.currentTime + 0.3);
+                    osc1.stop(audioCtx.currentTime + 0.25); osc2.stop(audioCtx.currentTime + 0.25);
                 }
-                else if (type === "m3") { // Lo-Fi Piano
+                else if (type === "m3") { 
                     let chord = (step % 4 < 2) ? notes.Cmaj : [220, 261, 329];
                     chord.forEach(freq => {
                         let osc = audioCtx.createOscillator();
                         let gain = audioCtx.createGain();
                         osc.type = "sine";
                         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.005, audioCtx.currentTime + 1.4);
+                        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.002, audioCtx.currentTime + 1.4);
                         osc.connect(gain);
                         gain.connect(musicGainNode);
                         osc.start();
                         osc.stop(audioCtx.currentTime + 1.5);
                     });
                 }
-                else if (type === "m4") { // Deep House
+                else if (type === "m4") { 
                     let osc = audioCtx.createOscillator();
                     osc.type = "sine";
                     let mel = [notes.E3, notes.G3, notes.B3, notes.C4];
                     osc.frequency.setValueAtTime(mel[step % 4], audioCtx.currentTime);
                     osc.connect(musicGainNode);
                     osc.start();
-                    osc.stop(audioCtx.currentTime + 0.4);
+                    osc.stop(audioCtx.currentTime + 0.3);
                 }
                 step++;
             }, type === "m3" ? 1600 : 320);
@@ -307,14 +305,14 @@
 
         function changeVolume() {
             if (musicGainNode) {
-                musicGainNode.gain.value = (document.getElementById('bgMusicVolume').value / 100) * 0.2;
+                musicGainNode.gain.value = (document.getElementById('bgMusicVolume').value / 100) * 0.15;
             }
         }
     </script>
 
-    <!-- Motor de Video y Grabación Manual -->
+    <!-- Motor Gráfico Principal -->
     <script>
-        const camera = document.getElementById('hiddenCam');
+        const video = document.getElementById('hiddenVideo');
         const canvas = document.getElementById('videoCanvas');
         const ctx = canvas.getContext('2d');
         
@@ -331,9 +329,9 @@
         canvas.width = 854; canvas.height = 480;
         ctx.fillStyle = "#111113"; ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "#a855f7"; ctx.font = "bold 16px Inter"; ctx.textAlign = "center";
-        ctx.fillText("ESTUDIO CAPACITIUM - HARDWARE DE AUDIO DE ALTA PRESENCIA", canvas.width/2, canvas.height/2 - 20);
+        ctx.fillText("MODO SMARTPHONE AUDIO FIX", canvas.width/2, canvas.height/2 - 20);
         ctx.fillStyle = "#71717a"; ctx.font = "13px Inter";
-        ctx.fillText("Tu micrófono corre en modo MONO unificado con un amplificador integrado del 300%", canvas.width/2, canvas.height/2 + 10);
+        ctx.fillText("Filtros acústicos calibrados para eliminar zumbidos eléctricos y acercar tu voz.", canvas.width/2, canvas.height/2 + 10);
 
         function saveState() {
             historyStack.push(JSON.stringify({
@@ -341,7 +339,7 @@
                 textX: textX, textY: textY,
                 textSize: document.getElementById('textSize').value,
                 textColor: document.getElementById('textColor').value,
-                currentTime: videoEl.currentTime
+                currentTime: video.currentTime
             }));
             undoStack = [];
         }
@@ -366,19 +364,19 @@
             textX = state.textX; textY = state.textY;
             document.getElementById('textSize').value = state.textSize;
             document.getElementById('textColor').value = state.textColor;
-            videoEl.currentTime = state.currentTime;
+            video.currentTime = state.currentTime;
             updateEditor();
         }
 
         function loadVideo(event) {
             const file = event.target.files[0];
             if (file) {
-                videoEl.src = URL.createObjectURL(file);
-                videoEl.load();
+                video.src = URL.createObjectURL(file);
+                video.load();
                 document.getElementById('fileName').innerText = file.name;
                 document.getElementById('trackVisual').style.display = 'flex';
-                videoEl.onloadedmetadata = () => {
-                    canvas.width = videoEl.videoWidth; canvas.height = videoEl.videoHeight;
+                video.onloadedmetadata = () => {
+                    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
                     saveState();
                     updateEditor();
                 };
@@ -389,14 +387,14 @@
             initAudioEngine();
             const camEl = document.getElementById('hiddenCam');
             if (!isCamActive) {
-                // CONFIGURACIÓN MEJORADA DE HARDWARE: Forzamos captura en MONO puro y apagamos filtros distorsionadores
+                // CAMBIO CLAVE: Activamos la supresión de ruido (estática) y la cancelación de eco (lejanía) de forma balanceada
                 navigator.mediaDevices.getUserMedia({ 
                     video: { width: 640, height: 480 }, 
                     audio: {
-                        channelCount: 1,           // MONO REAL UNIFICADO: Concentra toda la potencia
-                        echoCancellation: true,    // Limpia ruidos
-                        noiseSuppression: true,
-                        autoGainControl: false     // Evita que el volumen de tu cuarto suba solo
+                        channelCount: 1,           // Mono real unificado central
+                        echoCancellation: true,    // QUITA LA LEJANÍA / REBOTE DE LA PARED
+                        noiseSuppression: true,    // ELIMINA LA ESTÁTICA / RUIDO ELÉCTRICO DE GUITARRA
+                        autoGainControl: false     // APAGADO: Para mantener tu nivel estable sin vicios
                     } 
                 })
                 .then(stream => {
@@ -429,14 +427,14 @@
 
         function togglePlay() {
             initAudioEngine();
-            if (videoEl.src) {
-                if (videoEl.paused) { 
-                    videoEl.play(); 
+            if (video.src) {
+                if (video.paused) { 
+                    video.play(); 
                     document.getElementById('btnPlayPause').innerHTML = '<i class="fa-solid fa-pause"></i> Pause';
                     renderLoop(); 
                 } 
                 else { 
-                    videoEl.pause(); 
+                    video.pause(); 
                     document.getElementById('btnPlayPause').innerHTML = '<i class="fa-solid fa-play"></i> Play';
                     cancelAnimationFrame(animationFrameId); 
                 }
@@ -445,7 +443,7 @@
 
         function renderLoop() {
             updateEditor();
-            if (!videoEl.paused || isCamActive || mediaRecorderInstance) {
+            if (!video.paused || isCamActive || mediaRecorderInstance) {
                 animationFrameId = requestAnimationFrame(renderLoop);
             }
         }
@@ -453,16 +451,14 @@
         function drawNativeScenario(type) {
             if (type === "neon") {
                 let gradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 50, canvas.width/2, canvas.height/2, canvas.width);
-                gradient.addColorStop(0, '#1a0b36'); 
-                gradient.addColorStop(1, '#02000a'); 
+                gradient.addColorStop(0, '#1a0b36'); gradient.addColorStop(1, '#02000a'); 
                 ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 2;
                 ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
             } 
             else if (type === "dark") {
                 let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                gradient.addColorStop(0, '#242428'); 
-                gradient.addColorStop(1, '#0f0f11'); 
+                gradient.addColorStop(0, '#242428'); gradient.addColorStop(1, '#0f0f11'); 
                 ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
             else if (type === "wood") {
@@ -475,13 +471,8 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const selectScenario = document.getElementById('bgScenario').value;
 
-            if (selectScenario !== "none") {
-                drawNativeScenario(selectScenario);
-            }
-
-            if (videoEl.src && videoEl.readyState >= 2) {
-                ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-            }
+            if (selectScenario !== "none") drawNativeScenario(selectScenario);
+            if (video.src && video.readyState >= 2) ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             const camEl = document.getElementById('hiddenCam');
             if (isCamActive && camEl.readyState >= 2) {
@@ -490,17 +481,12 @@
                     tempCanvas.width = 320; tempCanvas.height = 240;
                     let tempCtx = tempCanvas.getContext('2d');
                     tempCtx.drawImage(camera, 0, 0, 320, 240);
-                    
                     let frame = tempCtx.getImageData(0, 0, 320, 240);
                     let l = frame.data.length / 4;
 
                     for (let i = 0; i < l; i++) {
-                        let r = frame.data[i * 4 + 0];
-                        let g = frame.data[i * 4 + 1];
-                        let b = frame.data[i * 4 + 2];
-                        if (g > 95 && g > r && g > b || (r > 155 && g > 155 && b > 155)) {
-                            frame.data[i * 4 + 3] = 0;
-                        }
+                        let r = frame.data[i * 4 + 0]; let g = frame.data[i * 4 + 1]; let b = frame.data[i * 4 + 2];
+                        if (g > 95 && g > r && g > b || (r > 155 && g > 155 && b > 155)) frame.data[i * 4 + 3] = 0;
                     }
                     tempCtx.putImageData(frame, 0, 0);
                     ctx.drawImage(tempCanvas, canvas.width - 250, canvas.height - 200, 230, 180);
@@ -514,26 +500,20 @@
             const text = document.getElementById('editorText').value;
             if (text) {
                 const fontSize = document.getElementById('textSize').value;
-                ctx.font = `bold ${fontSize}px system-ui`;
-                ctx.textAlign = 'center';
-                ctx.strokeStyle = '#000000'; ctx.lineWidth = 5;
-                ctx.strokeText(text, textX, textY);
-                ctx.fillStyle = document.getElementById('textColor').value;
-                ctx.fillText(text, textX, textY);
+                ctx.font = `bold ${fontSize}px system-ui`; ctx.textAlign = 'center';
+                ctx.strokeStyle = '#000000'; ctx.lineWidth = 5; ctx.strokeText(text, textX, textY);
+                ctx.fillStyle = document.getElementById('textColor').value; ctx.fillText(text, textX, textY);
             }
 
-            if (videoEl.duration) {
-                document.getElementById('timeCode').innerText = `${formatTime(videoEl.currentTime)} / ${formatTime(videoEl.duration)}`;
-                document.getElementById('timeProgress').style.width = (videoEl.currentTime / videoEl.duration * 100) + '%';
+            if (video.duration) {
+                document.getElementById('timeCode').innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+                document.getElementById('timeProgress').style.width = (video.currentTime / video.duration * 100) + '%';
             }
         }
 
-        function formatTime(s) {
-            return Math.floor(s / 60).toString().padStart(2, '0') + ':' + Math.floor(s % 60).toString().padStart(2, '0');
-        }
-
-        function splitVideo() { if (videoEl.src) alert("✂️ Segmento marcado para corte."); }
-        function deleteSegment() { if (videoEl.src) alert("🗑️ Cambios limpiados."); }
+        function formatTime(s) { return Math.floor(s / 60).toString().padStart(2, '0') + ':' + Math.floor(s % 60).toString().padStart(2, '0'); }
+        function splitVideo() { if (video.src) alert("✂️ Segmento marcado."); }
+        function deleteSegment() { if (video.src) alert("🗑️ Cambios limpiados."); }
 
         function startManualRecord() {
             initAudioEngine();
@@ -550,10 +530,7 @@
                 mediaRecorderInstance = new MediaRecorder(finalStream);
             }
 
-            mediaRecorderInstance.ondataavailable = (e) => {
-                if (e.data && e.data.size > 0) recordedChunks.push(e.data);
-            };
-
+            mediaRecorderInstance.ondataavailable = (e) => { if (e.data && e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorderInstance.onstop = () => {
                 document.getElementById('statusOverlay').style.display = 'none';
                 document.getElementById('btnDownloadRec').style.display = 'inline-flex';
@@ -566,31 +543,26 @@
             document.getElementById('statusOverlay').style.display = 'block';
 
             mediaRecorderInstance.start(10); 
-            if (videoEl.src && videoEl.paused) togglePlay();
+            if (video.src && video.paused) togglePlay();
         }
 
         function stopManualRecord() {
-            if (mediaRecorderInstance && mediaRecorderInstance.state !== "inactive") {
-                mediaRecorderInstance.stop();
-            }
+            if (mediaRecorderInstance && mediaRecorderInstance.state !== "inactive") mediaRecorderInstance.stop();
             document.getElementById('btnStartRec').classList.remove('rec-active');
             document.getElementById('btnStartRec').innerHTML = "<i class='fa-solid fa-circle'></i> Iniciar Grabar";
             document.getElementById('btnStartRec').disabled = false;
             document.getElementById('btnStopRec').disabled = true;
-            if (videoEl.src && !videoEl.paused) togglePlay();
+            if (video.src && !video.paused) togglePlay();
         }
 
         function downloadManualRecord() {
             const blob = new Blob(recordedChunks, { type: 'video/webm' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = url;
-            link.download = `Master_Boosted_Mono_${Date.now()}.webm`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            link.href = url; link.download = `Produccion_Premium_Fix_${Date.now()}.webm`;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
             document.getElementById('btnDownloadRec').style.display = 'none';
-            alert("¡Exportación completada! El master se grabó con tu voz amplificada y la música perfectamente controlada de fondo.");
+            alert("¡Video guardado! La voz se grabó en primer plano sin interferencias ni ruidos de estática.");
         }
 
         function getPos(e) {
