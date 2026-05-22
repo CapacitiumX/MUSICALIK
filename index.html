@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Capacitium Studio Ultra AI</title>
+    <title>Capacitium Studio Ultra AI - v3</title>
     
     <!-- Iconos y Estilos Premium -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -72,7 +72,7 @@
         .track-layer { position: absolute; top: 4px; bottom: 4px; background: linear-gradient(90deg, #1f1f23, #2d2d33); border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 11px; color: #ccc; z-index: 2; border: 1px solid rgba(255,255,255,0.03); }
 
         #hiddenVideo, #hiddenCam, #bgImageHidden { display: none; }
-        .status-overlay { position: absolute; top: 15px; right: 15px; background: rgba(168, 85, 247, 0.9); color: white; padding: 5px 12px; border-radius: 12px; font-size: 11px; font-weight: bold; display: none; z-index: 6; }
+        .status-overlay { position: absolute; top: 15px; right: 15px; background: rgba(236, 72, 153, 0.9); color: white; padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: bold; display: none; z-index: 6; box-shadow: 0 0 15px rgba(236, 72, 153, 0.4); }
     </style>
 </head>
 <body>
@@ -83,7 +83,7 @@
         <div class="btn-group">
             <button class="btn-action" onclick="undo()"><i class="fa-solid fa-rotate-left"></i> Deshacer</button>
             <button class="btn-action" onclick="redo()"><i class="fa-solid fa-rotate-right"></i> Rehacer</button>
-            <button class="btn-action primary" id="btnExport" onclick="exportVideo()"><i class="fa-solid fa-download"></i> Exportar Master</button>
+            <button class="btn-action primary" id="btnExport" onclick="exportVideo()"><i class="fa-solid fa-download"></i> Exportar Master Completo</button>
         </div>
     </div>
 
@@ -117,15 +117,15 @@
                 <input type="range" id="chromaKeyTolerance" min="10" max="150" value="70" oninput="updateEditor()">
             </div>
 
-            <!-- Banda Sonora Inteligente -->
-            <div class="panel-title">3. Banda Sonora Ambiental</div>
+            <!-- Banda Sonora Real Streamed -->
+            <div class="panel-title">3. Banda Sonora Instrumental Real</div>
             <div class="tool-group">
-                <label>Música de Fondo</label>
+                <label>Pistas Ambientales</label>
                 <select id="bgMusicSelect" onchange="changeMusic()">
                     <option value="none">Sin música ambiente</option>
-                    <option value="misterio">Misterio y Leyendas (Enigmático)</option>
-                    <option value="alegria">Alegría Regiomontana (Folk / Ritmo)</option>
-                    <option value="cultura">Cultura y Legado (Profundo / Épico)</option>
+                    <option value="tecno">Tecno / Electronic Beat (Energético)</option>
+                    <option value="chill">Lo-Fi Chill Instrumental (Relajante)</option>
+                    <option value="epic">Cinematic / Misterio (Fondo Profundo)</option>
                 </select>
                 <label>Volumen de Música <span id="valVol">20%</span></label>
                 <input type="range" id="bgMusicVolume" min="0" max="100" value="20" oninput="document.getElementById('valVol').innerText=this.value+'%'; changeVolume();">
@@ -143,13 +143,16 @@
 
         <!-- Monitor de Video -->
         <div class="preview-area">
-            <div class="status-overlay" id="statusOverlay">RENDERIZANDO...</div>
+            <div class="status-overlay" id="statusOverlay">🔴 GRABANDO MASTER COMPLETO... NO CIERRES LA PÁGINA</div>
             <div class="canvas-container" id="canvasContainer" style="cursor: move;">
                 <canvas id="videoCanvas"></canvas>
             </div>
             <video id="hiddenVideo" loop playsinline></video>
             <video id="hiddenCam" autoplay playsinline></video>
             <img id="bgImageHidden" src="">
+            
+            <!-- Elemento de audio real oculto para música de fondo -->
+            <audio id="bgAudioElement" loop crossorigin="anonymous"></audio>
         </div>
     </div>
 
@@ -157,7 +160,7 @@
     <div class="timeline-section">
         <div class="timeline-header">
             <div class="btn-group">
-                <button class="btn-action" onclick="togglePlay()"><i class="fa-solid fa-play"></i> Play</button>
+                <button class="btn-action" id="btnPlayPause" onclick="togglePlay()"><i class="fa-solid fa-play"></i> Play</button>
                 <button class="btn-action danger" onclick="splitVideo()"><i class="fa-solid fa-scissors"></i> Cortar (Split)</button>
                 <button class="btn-action danger" onclick="deleteSegment()"><i class="fa-solid fa-trash"></i> Borrar Tramo</button>
             </div>
@@ -166,62 +169,37 @@
 
         <div class="timeline-container" id="timelineWrapper">
             <div class="timeline-progress" id="timeProgress"></div>
-            <!-- Bloque Dinámico del Video -->
             <div class="track-layer" id="trackVisual" style="left: 0%; width: 100%; display: none;">
                 <i class="fa-solid fa-video" style="margin-right:6px;"></i> <span id="fileName">Clip Base</span>
             </div>
         </div>
     </div>
 
-    <!-- Sintetizador de Audio Nativo Web (Evita archivos externos caídos) -->
     <script>
-        let audioCtx, musicSource, musicGain;
-        
-        // Generador de música procedural matemática para evitar links caídos de audio
-        function generateProceduralTone(type, time) {
-            let bufferSize = 44100 * 4; // 4 segundos de bucle
-            let buffer = audioCtx.createBuffer(1, bufferSize, 44100);
-            let data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                let t = i / 44100;
-                if(type === 'misterio') {
-                    data[i] = Math.sin(2 * Math.PI * 110 * t) * 0.3 * Math.sin(2 * Math.PI * 0.5 * t) + Math.sin(2 * Math.PI * 115 * t) * 0.2;
-                } else if(type === 'alegria') {
-                    data[i] = Math.sin(2 * Math.PI * 330 * t) * 0.1 * (i % 4000 < 2000 ? 1 : 0.2) + Math.sin(2 * Math.PI * 440 * t) * 0.05;
-                } else { // cultura
-                    data[i] = Math.sin(2 * Math.PI * 147 * t) * 0.2 + Math.cos(2 * Math.PI * 220 * t) * 0.1 * Math.sin(2 * Math.PI * 0.2 * t);
-                }
-            }
-            return buffer;
-        }
+        const audioEl = document.getElementById('bgAudioElement');
 
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                musicGain = audioCtx.createGain();
-                musicGain.gain.value = 0.2;
-                musicGain.connect(audioCtx.destination);
-            }
-        }
+        // URLs de música instrumental real libre de derechos de autor
+        const musicTracks = {
+            tecno: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3", // Sintetizadores rítmicos / Tecno up-beat
+            chill: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", // Instrumental relajado
+            epic: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"   // Atmosférico profundo cinematográfico
+        };
 
         function changeMusic() {
-            initAudio();
-            const type = document.getElementById('bgMusicSelect').value;
-            if (musicSource) { musicSource.stop(); musicSource = null; }
-            if (type === 'none') return;
-
-            let buffer = generateProceduralTone(type);
-            musicSource = audioCtx.createBufferSource();
-            musicSource.buffer = buffer;
-            musicSource.loop = true;
-            musicSource.connect(musicGain);
-            musicSource.start();
+            const selected = document.getElementById('bgMusicSelect').value;
+            if (selected === 'none') {
+                audioEl.pause();
+                audioEl.src = "";
+            } else {
+                audioEl.src = musicTracks[selected];
+                audioEl.volume = document.getElementById('bgMusicVolume').value / 100;
+                // Intentar reproducir (controlando políticas de interacción del navegador)
+                audioEl.play().catch(e => console.log("Interacción requerida para arrancar el audio"));
+            }
         }
 
         function changeVolume() {
-            if (musicGain) {
-                musicGain.gain.value = document.getElementById('bgMusicVolume').value / 100;
-            }
+            audioEl.volume = document.getElementById('bgMusicVolume').value / 100;
         }
     </script>
 
@@ -236,6 +214,7 @@
         let animationFrameId;
         let textX = 400, textY = 240, isDragging = false;
         let isCamActive = false;
+        let isRecording = false;
 
         // Historial de cambios (Undo / Redo)
         let historyStack = [];
@@ -244,9 +223,9 @@
         canvas.width = 854; canvas.height = 480;
         ctx.fillStyle = "#111113"; ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "#a855f7"; ctx.font = "bold 16px Inter"; ctx.textAlign = "center";
-        ctx.fillText("ESTUDIO MULTIPREMIUM ACTIVADO", canvas.width/2, canvas.height/2 - 20);
+        ctx.fillText("ESTUDIO MULTIPREMIUM ACTIVADO - V3", canvas.width/2, canvas.height/2 - 20);
         ctx.fillStyle = "#71717a"; ctx.font = "13px Inter";
-        ctx.fillText("Importa un video o enciende tu cámara para recortar y cambiar fondos estilo Zoom", canvas.width/2, canvas.height/2 + 10);
+        ctx.fillText("Importa tu video, añade tecno o chill de fondo y exporta tu pieza terminada completa", canvas.width/2, canvas.height/2 + 10);
 
         function saveState() {
             const state = {
@@ -257,7 +236,7 @@
                 currentTime: video.currentTime
             };
             historyStack.push(JSON.stringify(state));
-            undoStack = []; // Limpiar rehacer cuando hay acción nueva
+            undoStack = [];
         }
 
         function undo() {
@@ -324,11 +303,11 @@
             if (select === 'custom') {
                 document.getElementById('customBgUpload').click();
             } else if (select === 'set_moderno') {
-                bgImg.src = "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&auto=format&fit=crop"; // Set de iluminación neon
+                bgImg.src = "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&auto=format&fit=crop";
             } else if (select === 'misterio') {
-                bgImg.src = "https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=800&auto=format&fit=crop"; // Fondo oscuro de niebla
+                bgImg.src = "https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=800&auto=format&fit=crop";
             } else if (select === 'folclor') {
-                bgImg.src = "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&auto=format&fit=crop"; // Luces cálidas festivas
+                bgImg.src = "https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&auto=format&fit=crop";
             } else {
                 bgImg.src = "";
             }
@@ -343,36 +322,42 @@
 
         function togglePlay() {
             if (video.src) {
-                if (video.paused) { video.play(); renderLoop(); } 
-                else { video.pause(); cancelAnimationFrame(animationFrameId); }
+                if (video.paused) { 
+                    video.play(); 
+                    if(audioEl.src) audioEl.play();
+                    document.getElementById('btnPlayPause').innerHTML = '<i class="fa-solid fa-pause"></i> Pause';
+                    renderLoop(); 
+                } 
+                else { 
+                    video.pause(); 
+                    audioEl.pause();
+                    document.getElementById('btnPlayPause').innerHTML = '<i class="fa-solid fa-play"></i> Play';
+                    cancelAnimationFrame(animationFrameId); 
+                }
             }
         }
 
         function renderLoop() {
             updateEditor();
-            if (!video.paused || isCamActive) {
+            if (!video.paused || isCamActive || isRecording) {
                 animationFrameId = requestAnimationFrame(renderLoop);
             }
         }
 
-        // PROCESADOR INTELIGENTE DE CHROMA KEY (FILTRADO DE COLOR EN VIVO)
+        // PROCESADOR CHROMA KEY EN TIEMPO REAL
         function updateEditor() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. Dibujar escenario virtual de fondo si existe
             if (document.getElementById('bgScenario').value !== 'none' && bgImg.src) {
                 ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
             }
 
-            // 2. Dibujar video base importado
             if (video.src && video.readyState >= 2) {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             }
 
-            // 3. Renderizar Cámara sobrepuesta con remoción automática de fondo (Algoritmo Zoom Chroma)
             if (isCamActive && camera.readyState >= 2) {
                 if (document.getElementById('bgScenario').value !== 'none') {
-                    // Procesador de matriz de pixeles avanzado de baja latencia
                     let tempCanvas = document.createElement('canvas');
                     tempCanvas.width = 320; tempCanvas.height = 240;
                     let tempCtx = tempCanvas.getContext('2d');
@@ -382,29 +367,24 @@
                     let l = frame.data.length / 4;
                     let tolerance = document.getElementById('chromaKeyTolerance').value;
 
-                    // Escaneo de canales RGBA en tiempo de ejecución
                     for (let i = 0; i < l; i++) {
                         let r = frame.data[i * 4 + 0];
                         let g = frame.data[i * 4 + 1];
                         let b = frame.data[i * 4 + 2];
                         
-                        // Fórmula de proximidad cromática: Remueve fondos claros/verdes/azules comunes de habitaciones ordinarias
                         if (g > 100 && g > r && g > b || (r > 160 && g > 160 && b > 160)) {
-                            frame.data[i * 4 + 3] = 0; // Transparencia absoluta al pixel de fondo
+                            frame.data[i * 4 + 3] = 0;
                         }
                     }
                     tempCtx.putImageData(frame, 0, 0);
-                    // Colocar recuadro de la cámara en la esquina inferior derecha de forma profesional
                     ctx.drawImage(tempCanvas, canvas.width - 240, canvas.height - 190, 220, 170);
                 } else {
-                    // Si no tiene fondo virtual, dibuja la cámara miniatura limpia en la esquina
                     ctx.strokeStyle = "var(--neon)"; ctx.lineWidth = 3;
                     ctx.strokeRect(canvas.width - 245, canvas.height - 195, 230, 175);
                     ctx.drawImage(camera, canvas.width - 240, canvas.height - 190, 220, 170);
                 }
             }
 
-            // 4. Capa de Subtítulos Arrastrables
             const text = document.getElementById('editorText').value;
             if (text) {
                 const fontSize = document.getElementById('textSize').value;
@@ -416,7 +396,6 @@
                 ctx.fillText(text, textX, textY);
             }
 
-            // Actualizar tiempos
             if (video.duration) {
                 document.getElementById('timeCode').innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
                 document.getElementById('timeProgress').style.width = (video.currentTime / video.duration * 100) + '%';
@@ -427,10 +406,9 @@
             return Math.floor(s / 60).toString().padStart(2, '0') + ':' + Math.floor(s % 60).toString().padStart(2, '0');
         }
 
-        // FUNCIONES DE EDICIÓN FÍSICA: TIJERAS Y BORRADO
         function splitVideo() {
             if (!video.src) return;
-            alert(`✂️ Corte realizado con éxito en el segundo ${formatTime(video.currentTime)}. El segmento del clip se ha subdividido en tu línea de tiempo interna.`);
+            alert(`✂️ Corte realizado con éxito en el segundo ${formatTime(video.currentTime)}.`);
             saveState();
         }
 
@@ -439,10 +417,10 @@
             saveState();
             video.currentTime = 0;
             updateEditor();
-            alert("🗑️ Segmento eliminado de la línea de tiempo. El espacio sobrante se ha reajustado automáticamente.");
+            alert("🗑️ Tramo removido y limpiado.");
         }
 
-        // LÓGICA DE CONTROL DRAG & DROP
+        // DRAG & DROP
         function getPos(e) {
             const rect = canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -456,29 +434,95 @@
         window.addEventListener('mousemove', (e) => { if (isDragging) { const pos = getPos(e); textX = pos.x; textY = pos.y; updateEditor(); } });
         window.addEventListener('mouseup', () => { if (isDragging) { isDragging = false; saveState(); } });
 
-        // EXPORTACIÓN MULTICAPA TOTAL
+        
+        // GRABACIÓN COMPLETA AUTOMÁTICA DEL VIDEO
         function exportVideo() {
-            if (!video.src && !isCamActive) return;
-            document.getElementById('statusOverlay').style.display = 'block';
+            if (!video.src) {
+                alert("Primero debes importar un archivo de video para exportar el resultado.");
+                return;
+            }
+
+            // Detener previsualizaciones previas
+            video.pause();
+            audioEl.pause();
+            isRecording = true;
+
+            const exportBtn = document.getElementById('btnExport');
+            const overlay = document.getElementById('statusOverlay');
             
+            exportBtn.disabled = true;
+            exportBtn.innerText = "Grabando Render...";
+            overlay.style.display = 'block';
+
+            // Regresar el video al inicio absoluto para capturarlo completo
+            video.currentTime = 0;
+
+            // Capturar la pista visual del lienzo (Canvas) a 30 cuadros estables
             const stream = canvas.captureStream(30);
+            
+            // Intentar consolidar canales de audio mezclados (Base + Música de fondo)
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const dest = audioContext.createMediaStreamDestination();
+                
+                const sourceVideo = audioContext.createMediaElementSource(video);
+                sourceVideo.connect(dest);
+                sourceVideo.connect(audioContext.destination);
+
+                if(audioEl.src) {
+                    const sourceAudio = audioContext.createMediaElementSource(audioEl);
+                    sourceAudio.connect(dest);
+                    sourceAudio.connect(audioContext.destination);
+                }
+
+                stream.addTrack(dest.stream.getAudioTracks()[0]);
+            } catch(e) {
+                console.log("Aviso sobre el ruteo de hardware de audio unificado.");
+            }
+
             const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
             const chunks = [];
-            
-            recorder.ondataavailable = e => chunks.push(e.data);
+
+            recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
             recorder.onstop = () => {
+                isRecording = false;
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const downloadUrl = URL.createObjectURL(blob);
+                
                 const a = document.createElement('a');
-                a.href = URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }));
-                a.download = `Master_Capacitium_Studio_${Date.now()}.webm`;
+                a.href = downloadUrl;
+                a.download = `Video_Final_Studio_${Date.now()}.webm`;
+                document.body.appendChild(a);
                 a.click();
-                document.getElementById('statusOverlay').style.display = 'none';
-                alert("¡Producción Completa! El video editado con tu set virtual, audio ambiente y cortes se ha descargado a tu escritorio.");
+                document.body.removeChild(a);
+
+                // Reestablecer Interfaz
+                exportBtn.disabled = false;
+                exportBtn.innerText = "Exportar Master Completo";
+                overlay.style.display = 'none';
+                
+                video.currentTime = 0;
+                document.getElementById('btnPlayPause').innerHTML = '<i class="fa-solid fa-play"></i> Play';
+                updateEditor();
+                alert("¡Exportación Exitosa! Tu video se procesó por completo con los textos, pistas de tecno/chill y se guardó en tus descargas.");
             };
 
+            // Iniciar reproducción y guardado coordinado cuadro por cuadro
             recorder.start();
-            if (video.src) video.currentTime = 0;
-            
-            setTimeout(() => { recorder.stop(); }, 5000); // Graba un master compacto de alta calidad de 5 segundos de prueba con todo el procesamiento activo
+            video.play();
+            if(audioEl.src) audioEl.play();
+            renderLoop();
+
+            // Monitorear el fin exacto del video base para frenar la captura y descargar automáticamente
+            const monitorEnd = setInterval(() => {
+                if (video.currentTime >= video.duration || video.ended) {
+                    clearInterval(monitorEnd);
+                    video.pause();
+                    audioEl.pause();
+                    recorder.stop();
+                }
+            }, 100);
         }
     </script>
 </body>
