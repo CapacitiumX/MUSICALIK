@@ -2,180 +2,200 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Capacitium Studio - Pure Mobile Voice Fix</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Capacitium Studio Mobile</title>
     
-    <!-- Iconos y Estilos Premium -->
+    <!-- Iconos y Fuentes Premium para Celular -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --glass: rgba(255, 255, 255, 0.03);
+            --glass: rgba(255, 255, 255, 0.04);
             --glass-border: rgba(255, 255, 255, 0.08);
             --neon: #a855f7;
             --neon-pink: #ec4899;
-            --bg: #050506;
-            --panel: #0b0b0d;
+            --bg: #070709;
+            --panel: #0e0e12;
         }
 
         body {
             margin: 0; font-family: 'Inter', system-ui, sans-serif;
             background: var(--bg); color: white; height: 100vh;
             display: flex; flex-direction: column; overflow: hidden;
-            user-select: none;
+            /* Evita rebotes raros al arrastrar en navegadores móviles */
+            position: fixed; width: 100%;
         }
 
+        /* Top Bar Compacta para Celular */
         .app-header {
-            background: var(--panel); padding: 10px 20px;
+            background: var(--panel); padding: 12px 16px;
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 1px solid var(--glass-border);
-            z-index: 10;
         }
-        .logo { font-size: 16px; font-weight: 900; background: linear-gradient(90deg, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 1px; }
+        .logo { font-size: 14px; font-weight: 900; background: linear-gradient(90deg, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 0.5px; }
         
-        .workspace { flex: 1; display: flex; overflow: hidden; height: calc(100vh - 220px); }
+        /* Contenedor Principal Vertical */
+        .mobile-layout { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-        .control-sidebar {
-            width: 340px; background: var(--panel); border-right: 1px solid var(--glass-border);
-            padding: 15px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto;
+        /* MONITOR DE PREVISUALIZACIÓN (Arriba, Estilo CapCut Mobile) */
+        .preview-area {
+            background: #000; display: flex; align-items: center; justify-content: center;
+            padding: 10px; relative; min-height: 35vh; max-height: 40vh; border-bottom: 1px solid var(--glass-border);
         }
-        .panel-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #a1a1aa; font-weight: 700; margin-top: 5px; border-left: 2px solid var(--neon); padding-left: 6px;}
+        .canvas-container { position: relative; width: 100%; display: flex; justify-content: center; align-items: center; }
+        canvas { display: block; max-width: 100%; max-height: 38vh; border-radius: 8px; background: #050505; }
 
-        .tool-group {
-            background: var(--glass); border: 1px solid var(--glass-border);
-            padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px;
-        }
+        /* LÍNEA DE TIEMPO TÁCTIL (Al centro) */
+        .timeline-section { background: var(--panel); padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .timeline-header { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+        .timeline-container { position: relative; background: #141418; border-radius: 6px; height: 35px; border: 1px solid var(--glass-border); overflow: hidden; }
+        .timeline-progress { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: rgba(168, 85, 247, 0.15); border-right: 2px solid var(--neon); pointer-events: none; }
+        .track-layer { position: absolute; top: 3px; bottom: 3px; left: 4px; right: 4px; background: linear-gradient(90deg, #222, #333); border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 10px; color: #aaa; }
 
-        label { font-size: 12px; color: #a1a1aa; display: flex; justify-content: space-between; align-items: center; }
-        input[type="range"] { width: 100%; accent-color: var(--neon); background: #222; border-radius: 4px; height: 4px; appearance: none; }
-        input[type="text"], select { background: #111113; border: 1px solid var(--glass-border); color: white; padding: 8px; border-radius: 6px; outline: none; font-size: 13px; }
+        /* PANEL DE CONTROLES DESLIZABLE (Abajo) */
+        .control-panel { flex: 1; background: #0a0a0d; display: flex; flex-direction: column; overflow: hidden; }
         
-        .btn-action { background: var(--glass); border: 1px solid var(--glass-border); color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 6px; transition: 0.2s; font-size: 12px; }
-        .btn-action:hover { background: rgba(255,255,255,0.08); border-color: #555; }
-        .btn-action.primary { background: linear-gradient(90deg, var(--neon), var(--neon-pink)); border: none; font-weight: 600; }
+        /* Pestañas de Menú inferiores legibles */
+        .tab-menu { display: flex; background: var(--panel); border-bottom: 1px solid var(--glass-border); overflow-x: auto; scrollbar-width: none; }
+        .tab-menu::-webkit-scrollbar { display: none; }
+        .tab-btn { padding: 12px 18px; font-size: 12px; font-weight: bold; color: #71717a; border-bottom: 2px solid transparent; white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .tab-btn.active { color: white; border-bottom-color: var(--neon); background: rgba(168, 85, 247, 0.02); }
+
+        /* Secciones de herramientas */
+        .tab-content { flex: 1; padding: 14px; overflow-y: auto; display: none; flex-direction: column; gap: 12px; }
+        .tab-content.active { display: flex; }
+
+        .tool-group { background: var(--glass); border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; }
+        label { font-size: 11px; color: #a1a1aa; display: flex; justify-content: space-between; }
+        
+        /* Controles de formulario optimizados para dedos */
+        input[type="range"] { width: 100%; accent-color: var(--neon); background: #222; height: 6px; border-radius: 4px; appearance: none; margin: 6px 0; }
+        input[type="text"], select { background: #131317; border: 1px solid var(--glass-border); color: white; padding: 10px; border-radius: 8px; outline: none; font-size: 13px; -webkit-appearance: none; }
+
+        /* Botones de Acción Móviles */
+        .btn-action { background: var(--glass); border: 1px solid var(--glass-border); color: white; padding: 10px 14px; border-radius: 8px; font-weight: 600; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; }
+        .btn-action.primary { background: linear-gradient(90deg, var(--neon), var(--neon-pink)); border: none; }
         .btn-action.rec-active { background: #ef4444; border-color: #f87171; animation: pulse 1.5s infinite; }
+        .btn-grid-mobile { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
-        .preview-area { flex: 1; background: #010102; display: flex; align-items: center; justify-content: center; padding: 15px; position: relative; }
-        .canvas-container { position: relative; border-radius: 8px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.9); border: 1px solid rgba(255,255,255,0.05); }
-        canvas { display: block; max-width: 100%; max-height: 55vh; background: #000; }
-
-        .timeline-section { background: var(--panel); border-top: 1px solid var(--glass-border); padding: 12px 20px; display: flex; flex-direction: column; gap: 10px; }
-        .timeline-header { display: flex; align-items: center; justify-content: space-between; }
-        .btn-group { display: flex; gap: 6px; }
-
-        .timeline-container { position: relative; background: #111113; border-radius: 6px; height: 50px; border: 1px solid var(--glass-border); overflow: hidden; }
-        .timeline-progress { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: rgba(168, 85, 247, 0.12); border-right: 2px solid var(--neon); pointer-events: none; z-index: 4; }
-        .track-layer { position: absolute; top: 4px; bottom: 4px; background: linear-gradient(90deg, #1f1f23, #2d2d33); border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 11px; color: #ccc; z-index: 2; border: 1px solid rgba(255,255,255,0.03); }
-
+        .status-overlay { position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: bold; display: none; z-index: 6; }
         #hiddenVideo, #hiddenCam { display: none; }
-        .status-overlay { position: absolute; top: 15px; right: 15px; background: #ef4444; color: white; padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: bold; display: none; z-index: 6; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
-        @keyframes pulse { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
+        @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
     </style>
 </head>
 <body>
 
+    <!-- Header Móvil Superior con Guardado rápido -->
     <div class="app-header">
-        <div class="logo"><i class="fa-solid fa-mobile-screen-button"></i> CAPACITIUM STUDIO - MOBILE SOUND STUDIO</div>
-        <div class="btn-group">
-            <button class="btn-action" onclick="undo()"><i class="fa-solid fa-rotate-left"></i> Deshacer</button>
-            <button class="btn-action" onclick="redo()"><i class="fa-solid fa-rotate-right"></i> Rehacer</button>
-            <button class="btn-action primary" id="btnStartRec" onclick="startManualRecord()"><i class="fa-solid fa-circle"></i> Iniciar Grabar</button>
-            <button class="btn-action" id="btnStopRec" onclick="stopManualRecord()" disabled><i class="fa-solid fa-square"></i> Detener</button>
-            <button class="btn-action" id="btnDownloadRec" onclick="downloadManualRecord()" style="background: #22c55e; border: none; display: none;"><i class="fa-solid fa-save"></i> Guardar Video</button>
-        </div>
+        <div class="logo"><i class="fa-solid fa-mobile-screen"></i> CAPACITIUM MOBILE</div>
+        <button class="btn-action" id="btnDownloadRec" onclick="downloadManualRecord()" style="background: #22c55e; border: none; padding: 6px 12px; display: none; font-size: 11px;"><i class="fa-solid fa-save"></i> GUARDAR</button>
     </div>
 
-    <div class="workspace">
-        <div class="control-sidebar">
-            
-            <div class="panel-title">1. Entrada de Medios</div>
-            <div class="tool-group">
-                <button class="btn-action primary" onclick="document.getElementById('videoUpload').click()"><i class="fa-solid fa-file-video"></i> Importar Video Base</button>
-                <input type="file" id="videoUpload" accept="video/*" style="display: none;" onchange="loadVideo(event)">
-                
-                <button class="btn-action" id="btnCam" onclick="toggleCamera()"><i class="fa-solid fa-camera"></i> Activar Mi Cámara e Iniciar Audio</button>
-            </div>
-
-            <div class="panel-title">2. Set Virtual (Escenarios Nativos)</div>
-            <div class="tool-group">
-                <label>Fondo de Pantalla Virtual</label>
-                <select id="bgScenario" onchange="updateEditor()">
-                    <option value="none">Sin fondo (Cámara Normal)</option>
-                    <option value="neon">Estudio Cyber Neon (Morado / Rosa)</option>
-                    <option value="dark">Set Premium Ejecutivo (Gris Oscuro)</option>
-                    <option value="wood">Estudio Acústico / Podcast (Cálido)</option>
-                </select>
-                <label>Tolerancia Croma</label>
-                <input type="range" id="chromaKeyTolerance" min="10" max="150" value="70" oninput="updateEditor()">
-            </div>
-
-            <div class="panel-title">3. Consola de Audio (Filtros Anti-Estática)</div>
-            <div class="tool-group">
-                <label>Volumen Micrófono <span id="valMic" style="color: #22c55e; font-weight: bold;">300% (BOOST)</span></label>
-                <input type="range" id="voiceBoosterVol" min="100" max = "400" value="300" oninput="document.getElementById('valMic').innerText=this.value+'% (BOOST)'; changeVoiceBoost();">
-
-                <label>Música Instrumental</label>
-                <select id="bgMusicSelect" onchange="changeMusic()">
-                    <option value="none">Sin música de fondo</option>
-                    <option value="m1">1. Tecno Melódico (Base Rítmica)</option>
-                    <option value="m2">2. Synthwave Drive (Armonía 80s)</option>
-                    <option value="m3">3. Lo-Fi Piano Chillout (Relajante)</option>
-                    <option value="m4">4. Deep House Ambient (Corporativo)</option>
-                </select>
-                <label>Volumen Fondo Musical <span id="valVol">4%</span></label>
-                <input type="range" id="bgMusicVolume" min="0" max="25" value="4" oninput="document.getElementById('valVol').innerText=this.value+'%'; changeVolume();">
-            </div>
-
-            <div class="panel-title">4. Títulos Dinámicos</div>
-            <div class="tool-group">
-                <input type="text" id="editorText" value="Arrástrame en el cuadro" oninput="saveState(); updateEditor();">
-                <label>Tamaño Fuente</label>
-                <input type="range" id="textSize" min="16" max="70" value="30" oninput="updateEditor()">
-                <input type="color" id="textColor" value="#ffffff" onchange="updateEditor()" style="width:100%; height:30px; border:none; cursor:pointer;">
-            </div>
-        </div>
-
+    <div class="mobile-layout">
+        <!-- MONITOR DE VIDEO (Táctil) -->
         <div class="preview-area">
-            <div class="status-overlay" id="statusOverlay">🔴 GRABANDO AUDIO LIMPIO...</div>
-            <div class="canvas-container" id="canvasContainer" style="cursor: move;">
+            <div class="status-overlay" id="statusOverlay">REC</div>
+            <div class="canvas-container" id="canvasContainer">
                 <canvas id="videoCanvas"></canvas>
             </div>
-            
             <video id="hiddenVideo" loop playsinline crossorigin="anonymous"></video>
             <video id="hiddenCam" autoplay playsinline></video>
         </div>
-    </div>
 
-    <div class="timeline-section">
-        <div class="timeline-header">
-            <div class="btn-group">
-                <button class="btn-action" id="btnPlayPause" onclick="togglePlay()"><i class="fa-solid fa-play"></i> Play</button>
-                <button class="btn-action danger" onclick="splitVideo()"><i class="fa-solid fa-scissors"></i> Cortar</button>
-                <button class="btn-action danger" onclick="deleteSegment()"><i class="fa-solid fa-trash"></i> Borrar</button>
+        <!-- LÍNEA DE TIEMPO INTERACTIVA -->
+        <div class="timeline-section">
+            <div class="timeline-header">
+                <div style="font-family: monospace;" id="timeCode">00:00 / 00:00</div>
+                <div class="btn-group" style="display:flex; gap:6px;">
+                    <button class="btn-action" onclick="undo()" style="padding:4px 8px;"><i class="fa-solid fa-rotate-left"></i></button>
+                    <button class="btn-action" onclick="redo()" style="padding:4px 8px;"><i class="fa-solid fa-rotate-right"></i></button>
+                </div>
             </div>
-            <div style="font-size: 13px; color: #a1a1aa; font-family: monospace;" id="timeCode">00:00 / 00:00</div>
+            <div class="timeline-container" id="timelineWrapper">
+                <div class="timeline-progress" id="timeProgress"></div>
+                <div class="track-layer" id="trackVisual" style="display: none;">
+                    <i class="fa-solid fa-video"></i> &nbsp;<span id="fileName">Clip</span>
+                </div>
+            </div>
         </div>
 
-        <div class="timeline-container" id="timelineWrapper">
-            <div class="timeline-progress" id="timeProgress"></div>
-            <div class="track-layer" id="trackVisual" style="left: 0%; width: 100%; display: none;">
-                <i class="fa-solid fa-video" style="margin-right:6px;"></i> <span id="fileName">Clip Base</span>
+        <!-- CONSOLA DE HERRAMIENTAS INFERIOR TIPO TABS -->
+        <div class="control-panel">
+            <div class="tab-menu">
+                <div class="tab-btn active" onclick="switchTab('media-tab', this)"><i class="fa-solid fa-folder-open"></i> Medios</div>
+                <div class="tab-btn" onclick="switchTab('studio-tab', this)"><i class="fa-solid fa-circle-dot"></i> Estudio Grabar</div>
+                <div class="tab-btn" onclick="switchTab('bg-tab', this)"><i class="fa-solid fa-wand-magic-sparkles"></i> Fondo Virtual</div>
+                <div class="tab-btn" onclick="switchTab('audio-tab', this)"><i class="fa-solid fa-music"></i> Audio</div>
+                <div class="tab-btn" onclick="switchTab('text-tab', this)"><i class="fa-solid fa-font"></i> Texto</div>
+            </div>
+
+            <!-- Contenidos de Pestañas -->
+            <div id="media-tab" class="tab-content active">
+                <div class="tool-group">
+                    <button class="btn-action primary" onclick="document.getElementById('videoUpload').click()"><i class="fa-solid fa-plus"></i> Importar Video Base</button>
+                    <input type="file" id="videoUpload" accept="video/*" style="display: none;" onchange="loadVideo(event)">
+                </div>
+                <button class="btn-action" id="btnPlayPause" onclick="togglePlay()" style="width:100%; padding:12px;"><i class="fa-solid fa-play"></i> Reproducir Clip</button>
+            </div>
+
+            <div id="studio-tab" class="tab-content">
+                <div class="btn-grid-mobile">
+                    <button class="btn-action primary" id="btnStartRec" onclick="startManualRecord()"><i class="fa-solid fa-circle"></i> Iniciar Grabar</button>
+                    <button class="btn-action" id="btnStopRec" onclick="stopManualRecord()" disabled><i class="fa-solid fa-square"></i> Detener</button>
+                </div>
+                <button class="btn-action" id="btnCamMobile" onclick="toggleCamera()" style="width:100%;"><i class="fa-solid fa-camera"></i> Activar Cámara Frontal</button>
+            </div>
+
+            <div id="bg-tab" class="tab-content">
+                <div class="tool-group">
+                    <label>Fondo Tipo Zoom</label>
+                    <select id="bgScenario" onchange="updateEditor()">
+                        <option value="none">Sin fondo (Cámara Normal)</option>
+                        <option value="neon">Estudio Cyber Neon (Morado)</option>
+                        <option value="dark">Set Premium Ejecutivo (Gris)</option>
+                        <option value="wood">Estudio Acústico Podcast</option>
+                    </select>
+                    <label>Tolerancia Croma</label>
+                    <input type="range" id="chromaKeyTolerance" min="10" max="150" value="70" oninput="updateEditor()">
+                </div>
+            </div>
+
+            <div id="audio-tab" class="tab-content">
+                <div class="tool-group">
+                    <label>Micrófono Celular Boost</label>
+                    <input type="range" id="voiceBoosterVol" min="100" max="400" value="300" oninput="changeVoiceBoost()">
+                    
+                    <label>Pistas Ambientales</label>
+                    <select id="bgMusicSelect" onchange="changeMusic()">
+                        <option value="none">Sin música de fondo</option>
+                        <option value="m1">1. Tecno Melódico (Base Rítmica)</option>
+                        <option value="m2">2. Synthwave Drive (Armonía 80s)</option>
+                        <option value="m3">3. Lo-Fi Piano Chillout (Relajante)</option>
+                        <option value="m4">4. Deep House Ambient (Corporativo)</option>
+                    </select>
+                    <label>Volumen Fondo</label>
+                    <input type="range" id="bgMusicVolume" min="0" max="25" value="4" oninput="changeVolume()">
+                </div>
+            </div>
+
+            <div id="text-tab" class="tab-content">
+                <div class="tool-group">
+                    <label>Texto Subtítulo</label>
+                    <input type="text" id="editorText" value="Arrástrame con tu dedo" oninput="saveState(); updateEditor();">
+                    <label>Tamaño</label>
+                    <input type="range" id="textSize" min="16" max="60" value="26" oninput="updateEditor()">
+                    <label>Color</label>
+                    <input type="color" id="textColor" value="#ffffff" onchange="updateEditor()" style="width:100%; height:35px; border:none; border-radius:6px;">
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- INGENIERÍA DE AUDIO MEJORADA: FILTROS INTEGRADOS ESTILO CELULAR -->
+    <!-- CONTROL DE AUDIO MÓVIL MONO FILTRADO -->
     <script>
-        let audioCtx = null;
-        let mixerDest = null;
-        let videoNode = null;
-        let micNode = null;
-        let micGainNode = null; 
-        let musicGainNode = null;
-        let currentMusicType = "none";
-        let musicInterval = null;
-        
-        let audioAnalyser = null;
-        let dataArray = null;
+        let audioCtx = null; let mixerDest = null; let videoNode = null;
+        let micNode = null; let micGainNode = null; let musicGainNode = null;
+        let currentMusicType = "none"; let musicInterval = null;
+        let audioAnalyser = null; let dataArray = null;
 
         const videoEl = document.getElementById('hiddenVideo');
 
@@ -184,18 +204,13 @@
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 mixerDest = audioCtx.createMediaStreamDestination();
 
-                // Audio del Video Original
                 videoNode = audioCtx.createMediaElementSource(videoEl);
-                videoNode.connect(audioCtx.destination); 
-                videoNode.connect(mixerDest);            
+                videoNode.connect(audioCtx.destination); videoNode.connect(mixerDest);            
 
-                // Ajuste milimétrico del volumen de fondo instrumental
                 musicGainNode = audioCtx.createGain();
                 musicGainNode.gain.value = (document.getElementById('bgMusicVolume').value / 100) * 0.15; 
-                musicGainNode.connect(audioCtx.destination);
-                musicGainNode.connect(mixerDest);
+                musicGainNode.connect(audioCtx.destination); musicGainNode.connect(mixerDest);
 
-                // Booster maestro para tu micrófono
                 micGainNode = audioCtx.createGain();
                 micGainNode.gain.value = document.getElementById('voiceBoosterVol').value / 100; 
                 micGainNode.connect(mixerDest); 
@@ -204,266 +219,141 @@
             }
         }
 
-        function changeVoiceBoost() {
-            if (micGainNode) {
-                micGainNode.gain.value = document.getElementById('voiceBoosterVol').value / 100;
-            }
-        }
-
+        function changeVoiceBoost() { if (micGainNode) micGainNode.gain.value = document.getElementById('voiceBoosterVol').value / 100; }
+        
         function monitorVoiceLevel() {
             setInterval(() => {
                 if (!audioAnalyser || !musicGainNode || currentMusicType === "none") return;
-                
                 audioAnalyser.getByteFrequencyData(dataArray);
-                let sum = 0;
-                for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                let sum = 0; for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
                 let averageVolume = sum / dataArray.length;
-                
                 let userMaxVolume = (document.getElementById('bgMusicVolume').value / 100) * 0.15;
-
-                if (averageVolume > 4) { 
-                    // Al hablar, atenúa la música suavemente al fondo
-                    musicGainNode.gain.setTargetAtTime(0.002, audioCtx.currentTime, 0.05);
-                } else {
-                    musicGainNode.gain.setTargetAtTime(userMaxVolume, audioCtx.currentTime, 0.4);
-                }
-            }, 70);
+                if (averageVolume > 4) { musicGainNode.gain.setTargetAtTime(0.002, audioCtx.currentTime, 0.05); } 
+                else { musicGainNode.gain.setTargetAtTime(userMaxVolume, audioCtx.currentTime, 0.4); }
+            }, 80);
         }
 
         function playPolifonicTrack(type) {
             if (musicInterval) { clearInterval(musicInterval); musicInterval = null; }
             if (type === "none") return;
-
             let step = 0;
-            const notes = {
-                C3: 130.81, E3: 164.81, G3: 196.00, B3: 246.94,
-                A3: 220.00, C4: 261.63, E4: 329.63, G4: 392.00,
-                F3: 174.61, G2: 98.00,  Am: [220, 261, 329], Cmaj: [130, 164, 196]
-            };
+            const notes = { C3: 130.81, E3: 164.81, G3: 196.00, A3: 220.00, F3: 174.61, Am: [220, 261, 329], Cmaj: [130, 164, 196] };
 
             musicInterval = setInterval(() => {
                 if (currentMusicType !== type || !audioCtx) { clearInterval(musicInterval); return; }
-
                 if (type === "m1") { 
-                    let osc = audioCtx.createOscillator();
-                    let filter = audioCtx.createBiquadFilter();
-                    osc.type = "sawtooth";
-                    filter.type = "lowpass"; filter.frequency.value = 400;
-                    let baseNote = (step % 4 === 0) ? notes.C3 : (step % 4 === 2 ? notes.E3 : notes.G3);
-                    osc.frequency.setValueAtTime(baseNote, audioCtx.currentTime);
-                    osc.connect(filter);
-                    filter.connect(musicGainNode);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.12);
+                    let osc = audioCtx.createOscillator(); let filter = audioCtx.createBiquadFilter();
+                    osc.type = "sawtooth"; filter.type = "lowpass"; filter.frequency.value = 400;
+                    osc.frequency.setValueAtTime((step % 4 === 0) ? notes.C3 : notes.G3, audioCtx.currentTime);
+                    osc.connect(filter); filter.connect(musicGainNode); osc.start(); osc.stop(audioCtx.currentTime + 0.12);
                 } 
                 else if (type === "m2") { 
-                    let osc1 = audioCtx.createOscillator();
-                    let osc2 = audioCtx.createOscillator();
-                    osc1.type = "triangle"; osc2.type = "sawtooth";
-                    let f = (step % 8 < 4) ? notes.A3 : notes.F3;
-                    osc1.frequency.setValueAtTime(f, audioCtx.currentTime);
-                    osc2.frequency.setValueAtTime(f * 1.5, audioCtx.currentTime);
-                    osc1.connect(musicGainNode);
-                    osc2.connect(musicGainNode);
-                    osc1.start(); osc2.start();
-                    osc1.stop(audioCtx.currentTime + 0.25); osc2.stop(audioCtx.currentTime + 0.25);
+                    let osc = audioCtx.createOscillator(); osc.type = "triangle";
+                    osc.frequency.setValueAtTime((step % 8 < 4) ? notes.A3 : notes.F3, audioCtx.currentTime);
+                    osc.connect(musicGainNode); osc.start(); osc.stop(audioCtx.currentTime + 0.25);
                 }
                 else if (type === "m3") { 
                     let chord = (step % 4 < 2) ? notes.Cmaj : [220, 261, 329];
                     chord.forEach(freq => {
-                        let osc = audioCtx.createOscillator();
-                        let gain = audioCtx.createGain();
-                        osc.type = "sine";
-                        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.002, audioCtx.currentTime + 1.4);
-                        osc.connect(gain);
-                        gain.connect(musicGainNode);
-                        osc.start();
-                        osc.stop(audioCtx.currentTime + 1.5);
+                        let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+                        osc.type = "sine"; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                        gain.gain.setValueAtTime(0.12, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.002, audioCtx.currentTime + 1.4);
+                        osc.connect(gain); gain.connect(musicGainNode); osc.start(); osc.stop(audioCtx.currentTime + 1.5);
                     });
                 }
-                else if (type === "m4") { 
-                    let osc = audioCtx.createOscillator();
-                    osc.type = "sine";
-                    let mel = [notes.E3, notes.G3, notes.B3, notes.C4];
-                    osc.frequency.setValueAtTime(mel[step % 4], audioCtx.currentTime);
-                    osc.connect(musicGainNode);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.3);
-                }
                 step++;
-            }, type === "m3" ? 1600 : 320);
+            }, type === "m3" ? 1600 : 330);
         }
 
-        function changeMusic() {
-            initAudioEngine();
-            const selected = document.getElementById('bgMusicSelect').value;
-            currentMusicType = selected;
-            playPolifonicTrack(selected);
-        }
-
-        function changeVolume() {
-            if (musicGainNode) {
-                musicGainNode.gain.value = (document.getElementById('bgMusicVolume').value / 100) * 0.15;
-            }
-        }
+        function changeMusic() { initAudioEngine(); const selected = document.getElementById('bgMusicSelect').value; currentMusicType = selected; playPolifonicTrack(selected); }
+        function changeVolume() { if (musicGainNode) musicGainNode.gain.value = (document.getElementById('bgMusicVolume').value / 100) * 0.15; }
     </script>
 
-    <!-- Motor Gráfico Principal -->
+    <!-- INTERFAZ RESPONSIVA Y GESTOS TÁCTILES MÓVILES -->
     <script>
-        const video = document.getElementById('hiddenVideo');
+        const camera = document.getElementById('hiddenCam');
         const canvas = document.getElementById('videoCanvas');
         const ctx = canvas.getContext('2d');
         
         let animationFrameId;
-        let textX = 400, textY = 240, isDragging = false;
+        let textX = 180, textY = 180, isDragging = false;
         let isCamActive = false;
+        let mediaRecorderInstance = null; let recordedChunks = [];
+        let historyStack = []; let undoStack = [];
 
-        let mediaRecorderInstance = null;
-        let recordedChunks = [];
+        // Forzar el lienzo de previsualización a cargarse en un tamaño responsivo móvil estable
+        canvas.width = 640; canvas.height = 480;
+        ctx.fillStyle = "#111115"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "rgba(255,255,255,0.4)"; ctx.font = "14px sans-serif"; ctx.textAlign = "center";
+        ctx.fillText("Estudio Móvil: Importa un video para editar", canvas.width/2, canvas.height/2);
 
-        let historyStack = [];
-        let undoStack = [];
-
-        canvas.width = 854; canvas.height = 480;
-        ctx.fillStyle = "#111113"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#a855f7"; ctx.font = "bold 16px Inter"; ctx.textAlign = "center";
-        ctx.fillText("MODO SMARTPHONE AUDIO FIX", canvas.width/2, canvas.height/2 - 20);
-        ctx.fillStyle = "#71717a"; ctx.font = "13px Inter";
-        ctx.fillText("Filtros acústicos calibrados para eliminar zumbidos eléctricos y acercar tu voz.", canvas.width/2, canvas.height/2 + 10);
+        // Cambiar pestañas deslizables inferiores
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
 
         function saveState() {
-            historyStack.push(JSON.stringify({
-                text: document.getElementById('editorText').value,
-                textX: textX, textY: textY,
-                textSize: document.getElementById('textSize').value,
-                textColor: document.getElementById('textColor').value,
-                currentTime: video.currentTime
-            }));
+            historyStack.push(JSON.stringify({ text: document.getElementById('editorText').value, textX: textX, textY: textY, textSize: document.getElementById('textSize').value, textColor: document.getElementById('textColor').value, currentTime: videoEl.currentTime }));
             undoStack = [];
         }
 
-        function undo() {
-            if (historyStack.length > 1) {
-                undoStack.push(historyStack.pop());
-                applyState(JSON.parse(historyStack[historyStack.length - 1]));
-            }
-        }
-
-        function redo() {
-            if (undoStack.length > 0) {
-                const stateStr = undoStack.pop();
-                historyStack.push(stateStr);
-                applyState(JSON.parse(stateStr));
-            }
-        }
-
-        function applyState(state) {
-            document.getElementById('editorText').value = state.text;
-            textX = state.textX; textY = state.textY;
-            document.getElementById('textSize').value = state.textSize;
-            document.getElementById('textColor').value = state.textColor;
-            video.currentTime = state.currentTime;
-            updateEditor();
-        }
+        function undo() { if (historyStack.length > 1) { undoStack.push(historyStack.pop()); applyState(JSON.parse(historyStack[historyStack.length - 1])); } }
+        function redo() { if (undoStack.length > 0) { const s = undoStack.pop(); historyStack.push(s); applyState(JSON.parse(s)); } }
+        function applyState(s) { document.getElementById('editorText').value = s.text; textX = s.textX; textY = s.textY; document.getElementById('textSize').value = s.textSize; document.getElementById('textColor').value = s.textColor; videoEl.currentTime = s.currentTime; updateEditor(); }
 
         function loadVideo(event) {
             const file = event.target.files[0];
             if (file) {
-                video.src = URL.createObjectURL(file);
-                video.load();
-                document.getElementById('fileName').innerText = file.name;
+                videoEl.src = URL.createObjectURL(file); videoEl.load();
+                document.getElementById('fileName').innerText = file.name.substring(0, 10) + "...";
                 document.getElementById('trackVisual').style.display = 'flex';
-                video.onloadedmetadata = () => {
-                    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-                    saveState();
-                    updateEditor();
-                };
+                videoEl.onloadedmetadata = () => { updateEditor(); saveState(); };
             }
         }
 
         function toggleCamera() {
             initAudioEngine();
-            const camEl = document.getElementById('hiddenCam');
             if (!isCamActive) {
-                // CAMBIO CLAVE: Activamos la supresión de ruido (estática) y la cancelación de eco (lejanía) de forma balanceada
                 navigator.mediaDevices.getUserMedia({ 
-                    video: { width: 640, height: 480 }, 
-                    audio: {
-                        channelCount: 1,           // Mono real unificado central
-                        echoCancellation: true,    // QUITA LA LEJANÍA / REBOTE DE LA PARED
-                        noiseSuppression: true,    // ELIMINA LA ESTÁTICA / RUIDO ELÉCTRICO DE GUITARRA
-                        autoGainControl: false     // APAGADO: Para mantener tu nivel estable sin vicios
-                    } 
+                    video: { facingMode: "user", width: 400, height: 300 }, 
+                    audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: false } 
                 })
                 .then(stream => {
-                    camEl.srcObject = stream;
-                    isCamActive = true;
-                    document.getElementById('btnCam').classList.add('primary');
-                    document.getElementById('btnCam').innerHTML = "🔴 Apagar Cámara";
-
-                    // Conectar la señal del micrófono al amplificador booster (Gain Node)
-                    micNode = audioCtx.createMediaStreamSource(stream);
-                    micNode.connect(micGainNode); 
-
-                    // Conectar al analizador automático de ducking
-                    audioAnalyser = audioCtx.createAnalyser();
-                    audioAnalyser.fftSize = 32;
-                    dataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
-                    micNode.connect(audioAnalyser);
-                    
+                    camera.srcObject = stream; isCamActive = true;
+                    document.getElementById('btnCamMobile').classList.add('primary');
+                    micNode = audioCtx.createMediaStreamSource(stream); micNode.connect(micGainNode);
+                    audioAnalyser = audioCtx.createAnalyser(); audioAnalyser.fftSize = 32;
+                    dataArray = new Uint8Array(audioAnalyser.frequencyBinCount); micNode.connect(audioAnalyser);
                     renderLoop();
-                }).catch(err => alert("Por favor concede los permisos de hardware solicitados."));
+                }).catch(err => alert("Activa los accesos de hardware en los ajustes de tu teléfono."));
             } else {
-                let stream = camEl.srcObject;
-                if (stream) stream.getTracks().forEach(track => track.stop());
-                isCamActive = false;
-                audioAnalyser = null;
-                document.getElementById('btnCam').classList.remove('primary');
-                document.getElementById('btnCam').innerHTML = "Activar Mi Cámara e Iniciar Audio";
+                let stream = camera.srcObject; if (stream) stream.getTracks().forEach(t => t.stop());
+                isCamActive = false; audioAnalyser = null;
+                document.getElementById('btnCamMobile').classList.remove('primary');
             }
         }
 
         function togglePlay() {
             initAudioEngine();
-            if (video.src) {
-                if (video.paused) { 
-                    video.play(); 
-                    document.getElementById('btnPlayPause').innerHTML = '<i class="fa-solid fa-pause"></i> Pause';
-                    renderLoop(); 
-                } 
-                else { 
-                    video.pause(); 
-                    document.getElementById('btnPlayPause').innerHTML = '<i class="fa-solid fa-play"></i> Play';
-                    cancelAnimationFrame(animationFrameId); 
-                }
+            if (videoEl.src) {
+                if (videoEl.paused) { videoEl.play(); document.getElementById('btnPlayPause').innerHTML = '<i class="fa-solid fa-pause"></i> Pausar Clip'; renderLoop(); } 
+                else { videoEl.pause(); document.getElementById('btnPlayPause').innerHTML = '<i class="fa-solid fa-play"></i> Reproducir Clip'; }
             }
         }
 
-        function renderLoop() {
-            updateEditor();
-            if (!video.paused || isCamActive || mediaRecorderInstance) {
-                animationFrameId = requestAnimationFrame(renderLoop);
-            }
-        }
+        function renderLoop() { updateEditor(); if (!videoEl.paused || isCamActive || mediaRecorderInstance) animationFrameId = requestAnimationFrame(renderLoop); }
 
         function drawNativeScenario(type) {
             if (type === "neon") {
                 let gradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 50, canvas.width/2, canvas.height/2, canvas.width);
-                gradient.addColorStop(0, '#1a0b36'); gradient.addColorStop(1, '#02000a'); 
-                ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 2;
-                ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
-            } 
-            else if (type === "dark") {
-                let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                gradient.addColorStop(0, '#242428'); gradient.addColorStop(1, '#0f0f11'); 
-                ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-            else if (type === "wood") {
-                ctx.fillStyle = "#361b0d"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "#1f0f07"; ctx.fillRect(0, canvas.height - 120, canvas.width, 120);
+                gradient.addColorStop(0, '#16092b'); gradient.addColorStop(1, '#020007'); ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else if (type === "dark") {
+                ctx.fillStyle = '#141416'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else if (type === "wood") {
+                ctx.fillStyle = "#2b1407"; ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
         }
 
@@ -472,111 +362,93 @@
             const selectScenario = document.getElementById('bgScenario').value;
 
             if (selectScenario !== "none") drawNativeScenario(selectScenario);
-            if (video.src && video.readyState >= 2) ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            if (videoEl.src && videoEl.readyState >= 2) ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
 
-            const camEl = document.getElementById('hiddenCam');
-            if (isCamActive && camEl.readyState >= 2) {
+            if (isCamActive && camera.readyState >= 2) {
+                let tempCanvas = document.createElement('canvas'); tempCanvas.width = 200; tempCanvas.height = 150;
+                let tempCtx = tempCanvas.getContext('2d'); tempCtx.drawImage(camera, 0, 0, 200, 150);
                 if (selectScenario !== "none") {
-                    let tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = 320; tempCanvas.height = 240;
-                    let tempCtx = tempCanvas.getContext('2d');
-                    tempCtx.drawImage(camera, 0, 0, 320, 240);
-                    let frame = tempCtx.getImageData(0, 0, 320, 240);
-                    let l = frame.data.length / 4;
-
-                    for (let i = 0; i < l; i++) {
-                        let r = frame.data[i * 4 + 0]; let g = frame.data[i * 4 + 1]; let b = frame.data[i * 4 + 2];
-                        if (g > 95 && g > r && g > b || (r > 155 && g > 155 && b > 155)) frame.data[i * 4 + 3] = 0;
+                    let frame = tempCtx.getImageData(0, 0, 200, 150);
+                    for (let i = 0; i < frame.data.length / 4; i++) {
+                        if (frame.data[i*4+1] > 95 && frame.data[i*4+1] > frame.data[i*4] && frame.data[i*4+1] > frame.data[i*4+2] || (frame.data[i*4] > 155 && frame.data[i*4+1] > 155 && frame.data[i*4+2] > 155)) frame.data[i*4+3] = 0;
                     }
                     tempCtx.putImageData(frame, 0, 0);
-                    ctx.drawImage(tempCanvas, canvas.width - 250, canvas.height - 200, 230, 180);
-                } else {
-                    ctx.strokeStyle = "var(--neon)"; ctx.lineWidth = 2;
-                    ctx.strokeRect(canvas.width - 252, canvas.height - 202, 234, 184);
-                    ctx.drawImage(camera, canvas.width - 250, canvas.height - 200, 230, 180);
                 }
+                ctx.drawImage(tempCanvas, canvas.width - 210, canvas.height - 160, 200, 150);
             }
 
             const text = document.getElementById('editorText').value;
             if (text) {
                 const fontSize = document.getElementById('textSize').value;
                 ctx.font = `bold ${fontSize}px system-ui`; ctx.textAlign = 'center';
-                ctx.strokeStyle = '#000000'; ctx.lineWidth = 5; ctx.strokeText(text, textX, textY);
+                ctx.strokeStyle = '#000000'; ctx.lineWidth = 4; ctx.strokeText(text, textX, textY);
                 ctx.fillStyle = document.getElementById('textColor').value; ctx.fillText(text, textX, textY);
             }
 
-            if (video.duration) {
-                document.getElementById('timeCode').innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
-                document.getElementById('timeProgress').style.width = (video.currentTime / video.duration * 100) + '%';
+            if (videoEl.duration) {
+                document.getElementById('timeCode').innerText = `${formatTime(videoEl.currentTime)} / ${formatTime(videoEl.duration)}`;
+                document.getElementById('timeProgress').style.width = (videoEl.currentTime / videoEl.duration * 100) + '%';
             }
         }
 
         function formatTime(s) { return Math.floor(s / 60).toString().padStart(2, '0') + ':' + Math.floor(s % 60).toString().padStart(2, '0'); }
-        function splitVideo() { if (video.src) alert("✂️ Segmento marcado."); }
-        function deleteSegment() { if (video.src) alert("🗑️ Cambios limpiados."); }
+        function splitVideo() {} function deleteSegment() {}
 
+        // ENRUTAMIENTO DE EVENTOS TOUCH GESTURES (Arreglado para pantallas móviles)
+        function getTouchPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            return {
+                x: (touch.clientX - rect.left) * (canvas.width / rect.width),
+                y: (touch.clientY - rect.top) * (canvas.height / rect.height)
+            };
+        }
+
+        document.getElementById('canvasContainer').addEventListener('touchstart', (e) => {
+            const pos = getTouchPos(e);
+            if (Math.sqrt(Math.pow(pos.x - textX, 2) + Math.pow(pos.y - textY, 2)) < 90) isDragging = true;
+        }, {passive: true});
+
+        document.getElementById('canvasContainer').addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const pos = getTouchPos(e); textX = pos.x; textY = pos.y; updateEditor();
+        }, {passive: true});
+
+        document.getElementById('canvasContainer').addEventListener('touchend', () => { if (isDragging) { isDragging = false; saveState(); } });
+
+        // GRABACIÓN MANUAL COMPATIBLE CON SMARTPHONES (Safari Mobile / Chrome Android)
         function startManualRecord() {
-            initAudioEngine();
-            recordedChunks = [];
+            initAudioEngine(); recordedChunks = [];
             const finalStream = canvas.captureStream(30); 
-            
-            if (mixerDest && mixerDest.stream.getAudioTracks().length > 0) {
-                finalStream.addTrack(mixerDest.stream.getAudioTracks()[0]);
-            }
+            if (mixerDest && mixerDest.stream.getAudioTracks().length > 0) finalStream.addTrack(mixerDest.stream.getAudioTracks()[0]);
 
-            try {
-                mediaRecorderInstance = new MediaRecorder(finalStream, { mimeType: 'video/webm;codecs=vp9,opus' });
-            } catch (e) {
-                mediaRecorderInstance = new MediaRecorder(finalStream);
-            }
+            try { mediaRecorderInstance = new MediaRecorder(finalStream, { mimeType: 'video/webm;codecs=vp9,opus' }); } 
+            catch (e) { mediaRecorderInstance = new MediaRecorder(finalStream); }
 
             mediaRecorderInstance.ondataavailable = (e) => { if (e.data && e.data.size > 0) recordedChunks.push(e.data); };
-            mediaRecorderInstance.onstop = () => {
-                document.getElementById('statusOverlay').style.display = 'none';
-                document.getElementById('btnDownloadRec').style.display = 'inline-flex';
-            };
+            mediaRecorderInstance.onstop = () => { document.getElementById('statusOverlay').style.display = 'none'; document.getElementById('btnDownloadRec').style.display = 'inline-flex'; };
 
-            document.getElementById('btnStartRec').classList.add('rec-active');
-            document.getElementById('btnStartRec').innerHTML = "🔴 Grabando Master...";
-            document.getElementById('btnStartRec').disabled = true;
-            document.getElementById('btnStopRec').disabled = false;
+            document.getElementById('btnStartRec').classList.add('rec-active'); document.getElementById('btnStartRec').innerHTML = "Grabando...";
+            document.getElementById('btnStartRec').disabled = true; document.getElementById('btnStopRec').disabled = false;
             document.getElementById('statusOverlay').style.display = 'block';
-
-            mediaRecorderInstance.start(10); 
-            if (video.src && video.paused) togglePlay();
+            mediaRecorderInstance.start(10); if (videoEl.src && videoEl.paused) togglePlay();
         }
 
         function stopManualRecord() {
             if (mediaRecorderInstance && mediaRecorderInstance.state !== "inactive") mediaRecorderInstance.stop();
-            document.getElementById('btnStartRec').classList.remove('rec-active');
-            document.getElementById('btnStartRec').innerHTML = "<i class='fa-solid fa-circle'></i> Iniciar Grabar";
-            document.getElementById('btnStartRec').disabled = false;
-            document.getElementById('btnStopRec').disabled = true;
-            if (video.src && !video.paused) togglePlay();
+            document.getElementById('btnStartRec').classList.remove('rec-active'); document.getElementById('btnStartRec').innerHTML = "Iniciar Grabar";
+            document.getElementById('btnStartRec').disabled = false; document.getElementById('btnStopRec').disabled = true;
+            if (videoEl.src && !videoEl.paused) togglePlay();
         }
 
         function downloadManualRecord() {
             const blob = new Blob(recordedChunks, { type: 'video/webm' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url; link.download = `Produccion_Premium_Fix_${Date.now()}.webm`;
+            const url = URL.createObjectURL(blob); const link = document.createElement('a');
+            link.href = url; link.download = `Capacitium_Mobile_Clip_${Date.now()}.webm`;
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
             document.getElementById('btnDownloadRec').style.display = 'none';
-            alert("¡Video guardado! La voz se grabó en primer plano sin interferencias ni ruidos de estática.");
+            alert("¡Video guardado en la memoria de tu celular con éxito!");
         }
-
-        function getPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            return { x: (clientX - rect.left) * (canvas.width / rect.width), y: (clientY - rect.top) * (canvas.height / rect.height) };
-        }
-        document.getElementById('canvasContainer').addEventListener('mousedown', (e) => {
-            const pos = getPos(e);
-            if (Math.sqrt(Math.pow(pos.x - textX, 2) + Math.pow(pos.y - textY, 2)) < 120) isDragging = true;
-        });
-        window.addEventListener('mousemove', (e) => { if (isDragging) { const pos = getPos(e); textX = pos.x; textY = pos.y; updateEditor(); } });
-        window.addEventListener('mouseup', () => { if (isDragging) { isDragging = false; saveState(); } });
     </script>
 </body>
 </html>
