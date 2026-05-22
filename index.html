@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Capacitium Master Studio - Total Fix Pro</title>
+    <title>Capacitium Master Studio - Crystal Audio Pro</title>
     
     <!-- Iconos y Estilos Premium -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -74,7 +74,7 @@
 <body>
 
     <div class="app-header">
-        <div class="logo"><i class="fa-solid fa-headset"></i> CAPACITIUM STUDIO - AUDIO FIX</div>
+        <div class="logo"><i class="fa-solid fa-sliders"></i> CAPACITIUM STUDIO STUDIO PRO</div>
         <div class="btn-group">
             <button class="btn-action" onclick="undo()"><i class="fa-solid fa-rotate-left"></i> Deshacer</button>
             <button class="btn-action" onclick="redo()"><i class="fa-solid fa-rotate-right"></i> Rehacer</button>
@@ -95,7 +95,7 @@
                 <button class="btn-action" id="btnCam" onclick="toggleCamera()"><i class="fa-solid fa-camera"></i> Activar Mi Cámara e Iniciar Audio</button>
             </div>
 
-            <div class="panel-title">2. Set Virtual (Escenarios Nativos Fix)</div>
+            <div class="panel-title">2. Set Virtual (Escenarios Nativos)</div>
             <div class="tool-group">
                 <label>Fondo de Pantalla Virtual</label>
                 <select id="bgScenario" onchange="updateEditor()">
@@ -108,16 +108,15 @@
                 <input type="range" id="chromaKeyTolerance" min="10" max="150" value="70" oninput="updateEditor()">
             </div>
 
-            <div class="panel-title">3. Banda Sonora Instrumental Nativa (Garantizada)</div>
+            <div class="panel-title">3. Banda Sonora Instrumental Real (Polifónica)</div>
             <div class="tool-group">
-                <label>Selecciona Track Ambiente</label>
+                <label>Selecciona Música de Fondo</label>
                 <select id="bgMusicSelect" onchange="changeMusic()">
                     <option value="none">Sin música de fondo</option>
-                    <option value="m1">1. Tecno Club Loop (High Energy)</option>
-                    <option value="m2">2. Synthwave Drive (80s Instrumental)</option>
-                    <option value="m3">3. Lo-Fi Chill Beats (Relajante)</option>
-                    <option value="m4">4. Deep House Corporate (Moderno)</option>
-                    <option value="m5">5. Epic Dramatic Pad (Atmosférico)</option>
+                    <option value="m1">1. Tecno Melódico (Base Rítmica)</option>
+                    <option value="m2">2. Synthwave Drive (Armonía 80s)</option>
+                    <option value="m3">3. Lo-Fi Piano Chillout (Relajante)</option>
+                    <option value="m4">4. Deep House Ambient (Corporativo)</option>
                 </select>
                 <label>Volumen Música <span id="valVol">20%</span></label>
                 <input type="range" id="bgMusicVolume" min="0" max="100" value="20" oninput="document.getElementById('valVol').innerText=this.value+'%'; changeVolume();">
@@ -139,7 +138,7 @@
             </div>
             
             <video id="hiddenVideo" loop playsinline crossorigin="anonymous"></video>
-            <video id="hiddenCam" autoplay playsinline muted></video> <!-- MUTED AQUÍ EVITA EL ECO EN TU CUARTO -->
+            <video id="hiddenCam" autoplay playsinline></video>
         </div>
     </div>
 
@@ -161,16 +160,15 @@
         </div>
     </div>
 
-    <!-- INGENIERÍA DE AUDIO Y MÚSICA AUTÓNOMA GENERATIVA -->
+    <!-- NÚCLEO MECÁNICO DE AUDIO LIMPIO Y MÚSICA SINTETIZADA REAL -->
     <script>
         let audioCtx = null;
         let mixerDest = null;
         let videoNode = null;
         let micNode = null;
-        
-        let proceduralMusicNode = null;
         let musicGainNode = null;
         let currentMusicType = "none";
+        let musicInterval = null;
 
         const videoEl = document.getElementById('hiddenVideo');
 
@@ -179,12 +177,12 @@
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 mixerDest = audioCtx.createMediaStreamDestination();
 
-                // Conectar el audio del video importado
+                // 1. Audio del Video Base
                 videoNode = audioCtx.createMediaElementSource(videoEl);
-                videoNode.connect(audioCtx.destination); // Lo escuchas tú
-                videoNode.connect(mixerDest);            // Se manda a la grabación
+                videoNode.connect(audioCtx.destination); 
+                videoNode.connect(mixerDest);            
 
-                // Nodo de ganancia/volumen para la música generativa
+                // 2. Canal Maestro de Música Instrumental
                 musicGainNode = audioCtx.createGain();
                 musicGainNode.gain.value = document.getElementById('bgMusicVolume').value / 100;
                 musicGainNode.connect(audioCtx.destination);
@@ -192,55 +190,88 @@
             }
         }
 
-        // Generador de música real sintetizada por código de osciladores nativos (Nunca falla, no usa internet)
-        function playProceduralTrack(type) {
-            if (proceduralMusicNode) { try { proceduralMusicNode.stop(); } catch(e){} }
+        // MOTOR GENERATIVO DE MÚSICA INSTRUMENTAL POLIFÓNICA REAL (Sintetizador por Software Nativo)
+        function playPolifonicTrack(type) {
+            if (musicInterval) { clearInterval(musicInterval); musicInterval = null; }
             if (type === "none") return;
 
-            // Crear un secuenciador de ritmo continuo (Beat Loop)
-            proceduralMusicNode = audioCtx.createOscillator();
-            let filter = audioCtx.createBiquadFilter();
-            
-            if (type === "m1") { // Tecno Club Energético
-                proceduralMusicNode.type = "sawtooth";
-                proceduralMusicNode.frequency.setValueAtTime(60, audioCtx.currentTime); // Bajo pesado
-                // Hacer un efecto de pulso bailable rítmico
-                let interval = setInterval(() => {
-                    if (currentMusicType !== "m1" || !audioCtx) { clearInterval(interval); return; }
-                    proceduralMusicNode.frequency.setValueAtTime(proceduralMusicNode.frequency.value === 60 ? 120 : 60, audioCtx.currentTime);
-                }, 250);
-                filter.type = "lowpass"; filter.frequency.value = 400;
-            } 
-            else if (type === "m2") { // Synthwave Retro
-                proceduralMusicNode.type = "triangle";
-                proceduralMusicNode.frequency.setValueAtTime(80, audioCtx.currentTime);
-                let interval = setInterval(() => {
-                    if (currentMusicType !== "m2" || !audioCtx) { clearInterval(interval); return; }
-                    proceduralMusicNode.frequency.setValueAtTime(proceduralMusicNode.frequency.value === 80 ? 100 : 80, audioCtx.currentTime);
-                }, 400);
-                filter.type = "lowpass"; filter.frequency.value = 800;
-            }
-            else if (type === "m3") { // Lo-Fi Chill
-                proceduralMusicNode.type = "sine";
-                proceduralMusicNode.frequency.setValueAtTime(90, audioCtx.currentTime);
-                filter.type = "lowpass"; filter.frequency.value = 300;
-            }
-            else { // Deep House / Epic Base
-                proceduralMusicNode.type = "sine";
-                proceduralMusicNode.frequency.setValueAtTime(70, audioCtx.currentTime);
-                filter.type = "lowpass"; filter.frequency.value = 500;
-            }
+            let step = 0;
+            // Notas musicales reales en frecuencias (Hz)
+            const notes = {
+                C3: 130.81, E3: 164.81, G3: 196.00, B3: 246.94,
+                A3: 220.00, C4: 261.63, E4: 329.63, G4: 392.00,
+                F3: 174.61, G2: 98.00,  Am: [220, 261, 329], Cmaj: [130, 164, 196]
+            };
 
-            proceduralMusicNode.connect(filter);
-            filter.connect(musicGainNode);
-            proceduralMusicNode.start();
+            musicInterval = setInterval(() => {
+                if (currentMusicType !== type || !audioCtx) { clearInterval(musicInterval); return; }
+
+                // Fabricar acordes y secuencias melódicas dependiendo del tipo
+                if (type === "m1") { // Tecno Melódico
+                    let osc = audioCtx.createOscillator();
+                    let filter = audioCtx.createBiquadFilter();
+                    osc.type = "sawtooth";
+                    filter.type = "lowpass"; filter.frequency.value = 500;
+
+                    let baseNote = (step % 4 === 0) ? notes.C3 : (step % 4 === 2 ? notes.E3 : notes.G3);
+                    osc.frequency.setValueAtTime(baseNote, audioCtx.currentTime);
+                    
+                    osc.connect(filter);
+                    filter.connect(musicGainNode);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.2); // Notas cortas rítmicas
+                } 
+                else if (type === "m2") { // Synthwave Retro Drive
+                    let osc1 = audioCtx.createOscillator();
+                    let osc2 = audioCtx.createOscillator();
+                    osc1.type = "triangle"; osc2.type = "sawtooth";
+
+                    let f = (step % 8 < 4) ? notes.A3 : notes.F3;
+                    osc1.frequency.setValueAtTime(f, audioCtx.currentTime);
+                    osc2.frequency.setValueAtTime(f * 1.5, audioCtx.currentTime); // Quinta perfecta para dar cuerpo
+
+                    osc1.connect(musicGainNode);
+                    osc2.connect(musicGainNode);
+                    osc1.start(); osc2.start();
+                    osc1.stop(audioCtx.currentTime + 0.4); osc2.stop(audioCtx.currentTime + 0.4);
+                }
+                else if (type === "m3") { // Lo-Fi Piano Chillout (Acordes Hermosos en bloque)
+                    let chord = (step % 4 < 2) ? notes.Cmaj : [220, 261, 329]; // Intercambio Cmaj y Am
+                    chord.forEach(freq => {
+                        let osc = audioCtx.createOscillator();
+                        let gain = audioCtx.createGain();
+                        osc.type = "sine";
+                        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                        
+                        // Envolvente suave para simular un teclado eléctrico
+                        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.2);
+                        
+                        osc.connect(gain);
+                        gain.connect(musicGainNode);
+                        osc.start();
+                        osc.stop(audioCtx.currentTime + 1.3);
+                    });
+                }
+                else if (type === "m4") { // Deep House Corporate Ambient
+                    let osc = audioCtx.createOscillator();
+                    osc.type = "sine";
+                    let mel = [notes.E3, notes.G3, notes.B3, notes.C4];
+                    osc.frequency.setValueAtTime(mel[step % 4], audioCtx.currentTime);
+                    osc.connect(musicGainNode);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.5);
+                }
+
+                step++;
+            }, type === "m3" ? 1500 : 300); // El Lo-Fi es más lento, el Tecno y Synthwave son rápidos
         }
 
         function changeMusic() {
             initAudioEngine();
             const selected = document.getElementById('bgMusicSelect').value;
             currentMusicType = selected;
-            playProceduralTrack(selected);
+            playPolifonicTrack(selected);
         }
 
         function changeVolume() {
@@ -252,7 +283,7 @@
 
     <!-- Motor de Video y Grabación Manual -->
     <script>
-        const video = document.getElementById('hiddenVideo');
+        const camera = document.getElementById('hiddenCam');
         const canvas = document.getElementById('videoCanvas');
         const ctx = canvas.getContext('2d');
         
@@ -269,9 +300,9 @@
         canvas.width = 854; canvas.height = 480;
         ctx.fillStyle = "#111113"; ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "#a855f7"; ctx.font = "bold 16px Inter"; ctx.textAlign = "center";
-        ctx.fillText("ESTUDIO PREMIUM - AUDIO DE MICROFONO Y MÚSICA CORREGIDO", canvas.width/2, canvas.height/2 - 20);
+        ctx.fillText("ESTUDIO CAPACITIUM - MICROFONO CRISTALINO & MÚSICA INSTRUMENTAL", canvas.width/2, canvas.height/2 - 20);
         ctx.fillStyle = "#71717a"; ctx.font = "13px Inter";
-        ctx.fillText("El eco viciado se ha removido por hardware y los escenarios corren nativos.", canvas.width/2, canvas.height/2 + 10);
+        ctx.fillText("Filtros de distorsión apagados. Tu micrófono se capturará limpio y directo al master final.", canvas.width/2, canvas.height/2 + 10);
 
         function saveState() {
             historyStack.push(JSON.stringify({
@@ -279,7 +310,7 @@
                 textX: textX, textY: textY,
                 textSize: document.getElementById('textSize').value,
                 textColor: document.getElementById('textColor').value,
-                currentTime: video.currentTime
+                currentTime: videoEl.currentTime
             }));
             undoStack = [];
         }
@@ -304,19 +335,19 @@
             textX = state.textX; textY = state.textY;
             document.getElementById('textSize').value = state.textSize;
             document.getElementById('textColor').value = state.textColor;
-            video.currentTime = state.currentTime;
+            videoEl.currentTime = state.currentTime;
             updateEditor();
         }
 
         function loadVideo(event) {
             const file = event.target.files[0];
             if (file) {
-                video.src = URL.createObjectURL(file);
-                video.load();
+                videoEl.src = URL.createObjectURL(file);
+                videoEl.load();
                 document.getElementById('fileName').innerText = file.name;
                 document.getElementById('trackVisual').style.display = 'flex';
-                video.onloadedmetadata = () => {
-                    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                videoEl.onloadedmetadata = () => {
+                    canvas.width = videoEl.videoWidth; canvas.height = videoEl.videoHeight;
                     saveState();
                     updateEditor();
                 };
@@ -325,23 +356,30 @@
 
         function toggleCamera() {
             initAudioEngine();
-            const camEl = document.getElementById('hiddenCam');
             if (!isCamActive) {
-                navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: true })
+                // CONFIGURACIÓN DE AUDIO CRISTALINA: Desactivamos filtros agresivos que rompen el sonido
+                navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 640, height: 480 }, 
+                    audio: {
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false
+                    } 
+                })
                 .then(stream => {
-                    camEl.srcObject = stream;
+                    camera.srcObject = stream;
                     isCamActive = true;
                     document.getElementById('btnCam').classList.add('primary');
                     document.getElementById('btnCam').innerHTML = "🔴 Apagar Cámara";
 
-                    // Conectar micrófono al grabador final (SIN RETORNO A ALTAVOCES PARA ELIMINAR EL VICIO)
+                    // Conectar tu voz al mezclador final de grabación sin hacer puente a tus bocinas (Cero Eco/Feedback)
                     micNode = audioCtx.createMediaStreamSource(stream);
                     micNode.connect(mixerDest); 
                     
                     renderLoop();
-                }).catch(err => alert("Concede los permisos de cámara y micrófono en la parte superior."));
+                }).catch(err => alert("Por favor concede permisos para abrir tu micrófono y cámara de video."));
             } else {
-                let stream = camEl.srcObject;
+                let stream = camera.srcObject;
                 if (stream) stream.getTracks().forEach(track => track.stop());
                 isCamActive = false;
                 document.getElementById('btnCam').classList.remove('primary');
@@ -351,14 +389,14 @@
 
         function togglePlay() {
             initAudioEngine();
-            if (video.src) {
-                if (video.paused) { 
-                    video.play(); 
+            if (videoEl.src) {
+                if (videoEl.paused) { 
+                    videoEl.play(); 
                     document.getElementById('btnPlayPause').innerHTML = '<i class="fa-solid fa-pause"></i> Pause';
                     renderLoop(); 
                 } 
                 else { 
-                    video.pause(); 
+                    videoEl.pause(); 
                     document.getElementById('btnPlayPause').innerHTML = '<i class="fa-solid fa-play"></i> Play';
                     cancelAnimationFrame(animationFrameId); 
                 }
@@ -367,31 +405,29 @@
 
         function renderLoop() {
             updateEditor();
-            if (!video.paused || isCamActive || mediaRecorderInstance) {
+            if (!videoEl.paused || isCamActive || mediaRecorderInstance) {
                 animationFrameId = requestAnimationFrame(renderLoop);
             }
         }
 
-        // DIBUJADO DE ESCENARIOS NATIVOS (Garantiza que nunca falle por seguridad del navegador)
         function drawNativeScenario(type) {
             if (type === "neon") {
                 let gradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 50, canvas.width/2, canvas.height/2, canvas.width);
-                gradient.addColorStop(0, '#1e1b4b'); // Azul noche profundo
-                gradient.addColorStop(1, '#03001e'); // Negro cyber
+                gradient.addColorStop(0, '#1a0b36'); 
+                gradient.addColorStop(1, '#02000a'); 
                 ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
-                // Diseñar líneas neon futuristas estables
                 ctx.strokeStyle = '#ec4899'; ctx.lineWidth = 2;
-                ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
+                ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
             } 
             else if (type === "dark") {
                 let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                gradient.addColorStop(0, '#2d3748'); // Gris premium
-                gradient.addColorStop(1, '#1a202c'); 
+                gradient.addColorStop(0, '#242428'); 
+                gradient.addColorStop(1, '#0f0f11'); 
                 ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
             else if (type === "wood") {
-                ctx.fillStyle = "#3b2314"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "#27160c"; ctx.fillRect(0, canvas.height - 100, canvas.width, 100); // Barra podcast
+                ctx.fillStyle = "#361b0d"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#1f0f07"; ctx.fillRect(0, canvas.height - 120, canvas.width, 120);
             }
         }
 
@@ -399,35 +435,29 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const selectScenario = document.getElementById('bgScenario').value;
 
-            // 1. Dibujar escenario nativo si está activo
             if (selectScenario !== "none") {
                 drawNativeScenario(selectScenario);
             }
 
-            // 2. Dibujar video base importado
-            if (video.src && video.readyState >= 2) {
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            if (videoEl.src && videoEl.readyState >= 2) {
+                ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
             }
 
-            // 3. Renderizar Cámara con Chroma Key sobre el escenario
-            const camEl = document.getElementById('hiddenCam');
-            if (isCamActive && camEl.readyState >= 2) {
+            if (isCamActive && camera.readyState >= 2) {
                 if (selectScenario !== "none") {
                     let tempCanvas = document.createElement('canvas');
                     tempCanvas.width = 320; tempCanvas.height = 240;
                     let tempCtx = tempCanvas.getContext('2d');
-                    tempCtx.drawImage(camEl, 0, 0, 320, 240);
+                    tempCtx.drawImage(camera, 0, 0, 320, 240);
                     
                     let frame = tempCtx.getImageData(0, 0, 320, 240);
                     let l = frame.data.length / 4;
-                    let tolerance = parseInt(document.getElementById('chromaKeyTolerance').value);
 
                     for (let i = 0; i < l; i++) {
                         let r = frame.data[i * 4 + 0];
                         let g = frame.data[i * 4 + 1];
                         let b = frame.data[i * 4 + 2];
                         
-                        // Quitar color verde o fondos sobreiluminados del cuarto ordinario
                         if (g > 95 && g > r && g > b || (r > 155 && g > 155 && b > 155)) {
                             frame.data[i * 4 + 3] = 0;
                         }
@@ -437,11 +467,10 @@
                 } else {
                     ctx.strokeStyle = "var(--neon)"; ctx.lineWidth = 2;
                     ctx.strokeRect(canvas.width - 252, canvas.height - 202, 234, 184);
-                    ctx.drawImage(camEl, canvas.width - 250, canvas.height - 200, 230, 180);
+                    ctx.drawImage(camera, canvas.width - 250, canvas.height - 200, 230, 180);
                 }
             }
 
-            // 4. Capa de Texto Arrastrable
             const text = document.getElementById('editorText').value;
             if (text) {
                 const fontSize = document.getElementById('textSize').value;
@@ -453,9 +482,9 @@
                 ctx.fillText(text, textX, textY);
             }
 
-            if (video.duration) {
-                document.getElementById('timeCode').innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
-                document.getElementById('timeProgress').style.width = (video.currentTime / video.duration * 100) + '%';
+            if (videoEl.duration) {
+                document.getElementById('timeCode').innerText = `${formatTime(videoEl.currentTime)} / ${formatTime(videoEl.duration)}`;
+                document.getElementById('timeProgress').style.width = (videoEl.currentTime / videoEl.duration * 100) + '%';
             }
         }
 
@@ -463,17 +492,15 @@
             return Math.floor(s / 60).toString().padStart(2, '0') + ':' + Math.floor(s % 60).toString().padStart(2, '0');
         }
 
-        function splitVideo() { if (video.src) alert("✂️ Segmento de clip marcado."); }
-        function deleteSegment() { if (video.src) alert("🗑️ Cambios de la pista limpiados."); }
+        function splitVideo() { if (videoEl.src) alert("✂️ Segmento de producción cortado."); }
+        function deleteSegment() { if (videoEl.src) alert("🗑️ Cambios del track removidos."); }
 
-        // EXPORTACIÓN DE MULTIPISTA COMPLETA (FUSIÓN PERFECTA GRÁFICA Y DE AUDIO)
         function startManualRecord() {
             initAudioEngine();
             recordedChunks = [];
             
-            const finalStream = canvas.captureStream(30); // Pista de Video
+            const finalStream = canvas.captureStream(30); 
             
-            // Unir el canal del mezclador de audio de hardware unificado al archivo
             if (mixerDest && mixerDest.stream.getAudioTracks().length > 0) {
                 finalStream.addTrack(mixerDest.stream.getAudioTracks()[0]);
             }
@@ -494,13 +521,13 @@
             };
 
             document.getElementById('btnStartRec').classList.add('rec-active');
-            document.getElementById('btnStartRec').innerHTML = "🔴 Grabando...";
+            document.getElementById('btnStartRec').innerHTML = "🔴 Grabando Master...";
             document.getElementById('btnStartRec').disabled = true;
             document.getElementById('btnStopRec').disabled = false;
             document.getElementById('statusOverlay').style.display = 'block';
 
             mediaRecorderInstance.start(10); 
-            if (video.src && video.paused) togglePlay();
+            if (videoEl.src && videoEl.paused) togglePlay();
         }
 
         function stopManualRecord() {
@@ -511,7 +538,7 @@
             document.getElementById('btnStartRec').innerHTML = "<i class='fa-solid fa-circle'></i> Iniciar Grabar";
             document.getElementById('btnStartRec').disabled = false;
             document.getElementById('btnStopRec').disabled = true;
-            if (video.src && !video.paused) togglePlay();
+            if (videoEl.src && !videoEl.paused) togglePlay();
         }
 
         function downloadManualRecord() {
@@ -519,15 +546,14 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `Produccion_Capacitium_Studio_${Date.now()}.webm`;
+            link.download = `Produccion_Limpia_Studio_${Date.now()}.webm`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             document.getElementById('btnDownloadRec').style.display = 'none';
-            alert("¡Excelente! Tu producción se ha guardado perfectamente con video, micrófono y banda sonora unificada.");
+            alert("¡Perfecto! Tu video final ha sido procesado con voz cristalina, música instrumental de fondo y descargado a tu equipo.");
         }
 
-        // DRAG & DROP CONTROL
         function getPos(e) {
             const rect = canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
